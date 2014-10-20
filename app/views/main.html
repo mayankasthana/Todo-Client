@@ -24,11 +24,7 @@
             <div class="well">
                 <ul class="nav ">
                     <li class="nav-header">People</li>
-                    <li class="active"><a href="#">Mayank</a>
-                    </li>
-                    <li><a href="#">Mihir</a>
-                    </li>
-                    <li><a href="#">Shivam</a>
+                    <li ng-repeat="user in users"><a href="#">{{user.username}}</a>
                     </li>
                 </ul>
             </div>

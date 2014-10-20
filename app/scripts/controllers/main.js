@@ -13,9 +13,7 @@ angular.module('todoApp')
           $scope.tasks = data;
           console.log($scope.tasks);
       });
-              $scope.tasks = [
-      'T1',
-      'T2',
-      'T3'
-    ];
+      $http.get('http://localhost:8000/public/api/users').success(function(data){
+          $scope.users = data;
+      });
   });
