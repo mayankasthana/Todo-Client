@@ -8,13 +8,15 @@
         
         <div class="row marketing">
             <div class="todo-list">
-                <div class="todo-list-item" ng-repeat="task in tasks">
-                    <div class="check">Tick</div> 
-                    <div class="priority">Priority</div>
-                    <div class="todo-list-item-desc">
-                        {{task}}
+                <input type="text" ng-model="newTask" />
+                <input type="button" value="Add" ng-click="addNewTask(newTask)"/>
+                <div class="todo-list-item row" ng-repeat="task in tasks">
+                    <div class="check col-md-1"><input type="checkbox" /></div> 
+                    <div class="priority col-md-1">{{task.priority}}</div>
+                    <div class="todo-list-item-desc col-md-7">
+                        {{task.text}}
                     </div>
-                    <div class="date">10/20/2014</div>
+                    <div class="date col-md-3">10/20/2014</div>
                 </div>
             </div>
         </div>
