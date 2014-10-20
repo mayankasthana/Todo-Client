@@ -5,19 +5,29 @@
             <p class="lead">
             </p>
         </div>
-        
+
         <div class="row marketing">
             <div class="todo-list">
                 <input type="text" ng-model="newTask" />
                 <input type="button" value="Add" ng-click="addNewTask(newTask)"/>
-                <div class="todo-list-item row" ng-repeat="task in tasks">
-                    <div class="check col-md-1"><input type="checkbox" /></div> 
-                    <div class="priority col-md-1">{{task.priority}}</div>
-                    <div class="todo-list-item-desc col-md-7">
-                        {{task.text}}
-                    </div>
-                    <div class="date col-md-3">10/20/2014</div>
-                </div>
+                <accordion close-others="oneAtATime">
+                    <accordion-group ng-repeat="task in tasks">
+                        <accordion-heading>
+                            <div class="todo-list-item row">
+                                <div class="priority col-md-1">{{task.priority}}</div>
+                                <div class="todo-list-item-desc col-md-6">
+                                    {{task.text}}
+                                </div>
+                                <div class="date col-md-4">{{task.updated_at}}</div>
+                                <div class="col-md-1">
+                                    <span ng-click="removeTask(task)" class="glyphicon glyphicon-remove"></span>
+                                </div>
+                            </div>
+                        </accordion-heading>
+                        <div>Mark Done: <input type="checkbox" ng-model="task.status" ng-true-value='1' ng-false-value='0' ng-change="printStatus(task.status)"/></div> 
+                    </accordion-group>
+                </accordion>
+
             </div>
         </div>
     </div>
