@@ -8,8 +8,12 @@
  * Controller of the todoApp
  */
 angular.module('todoApp')
-  .controller('TasksListCtrl', function ($scope) {
-    $scope.tasks = [
+  .controller('TodoCtrl', function ($scope,$http) {
+      $http.get('http://localhost:8000/public/api/tasks').success(function(data){
+          $scope.tasks = data;
+          console.log($scope.tasks);
+      });
+              $scope.tasks = [
       'T1',
       'T2',
       'T3'
