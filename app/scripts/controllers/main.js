@@ -7,15 +7,24 @@
  * # MainCtrl
  * Controller of the todoApp
  */
-angular.module('todoApp', ['ui.bootstrap'])
+angular.module('todoApp', ['ui.bootstrap','ngDragDrop'])
         .controller('TodoCtrl', function($scope, $http) {
             $http.get('http://localhost:8000/public/api/tasks').success(function(data) {
                 $scope.tasks = data;
-                $( "#accordion" ).accordion();
+                getTaskMembers();
             });
             $http.get('http://localhost:8000/public/api/users').success(function(data) {
                 $scope.users = data;
             });
+            function getTaskMembers(){
+                console.log($scope.tasks.length);
+                $scope.tasks.forEach(function(task){
+                $http.get('http://localhost:8000/public/api/task/'+task.id+'/users').success(function(data){
+                    task.members = data;
+                    console.log("Task members")
+                    console.log(data);
+                });
+            });};
             $scope.addNewTask = function(input) {
                 console.log(input);
                 //get currently logged in user token and send
@@ -31,7 +40,12 @@ angular.module('todoApp', ['ui.bootstrap'])
             $scope.printStatus = function(status) {
                 console.log(status);
             };
-
+            $scope.incPriority = function(task){
+                
+            };
+            $scope.decPriority = function(task){};
+            
+            
             $scope.removeTask = function(task) {
                 console.log("trying to remove task");
                 $http.delete('http://localhost:8000/public/api/task/' + task.id).success(function(res) {

@@ -10,7 +10,8 @@
     "angular-resource":"~1.2.0",
     "jquery":"~1.10.2",
     "jquery-ui":"~1.11.2",
-    "angular-bootstrap":"~0.11.2"
+    "angular-bootstrap":"~0.11.2",
+    "angular-dragdrop":"*"
   },
   "devDependencies": {
     "angular-mocks": "~1.2.0",
