@@ -7,7 +7,7 @@
  * # MainCtrl
  * Controller of the todoApp
  */
-angular.module('todoApp', ['ui.bootstrap','ngDragDrop'])
+angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop'])
         .controller('TodoCtrl', function($scope, $http) {
             $http.get('http://localhost:8000/public/api/tasks').success(function(data) {
                 $scope.tasks = data;
@@ -16,15 +16,17 @@ angular.module('todoApp', ['ui.bootstrap','ngDragDrop'])
             $http.get('http://localhost:8000/public/api/users').success(function(data) {
                 $scope.users = data;
             });
-            function getTaskMembers(){
+            function getTaskMembers() {
                 console.log($scope.tasks.length);
-                $scope.tasks.forEach(function(task){
-                $http.get('http://localhost:8000/public/api/task/'+task.id+'/users').success(function(data){
-                    task.members = data;
-                    console.log("Task members")
-                    console.log(data);
+                $scope.tasks.forEach(function(task) {
+                    $http.get('http://localhost:8000/public/api/task/' + task.id + '/users').success(function(data) {
+                        task.members = data;
+                        console.log("Task members")
+                        console.log(data);
+                    });
                 });
-            });};
+            }
+            ;
             $scope.addNewTask = function(input) {
                 console.log(input);
                 //get currently logged in user token and send
@@ -40,20 +42,35 @@ angular.module('todoApp', ['ui.bootstrap','ngDragDrop'])
             $scope.printStatus = function(status) {
                 console.log(status);
             };
-            $scope.incPriority = function(task){
-                
+            $scope.incPriority = function(task) {
+                task.priority-=1;
             };
-            $scope.decPriority = function(task){};
-            
-            
+            $scope.decPriority = function(task) {
+                task.priority+=1;
+            };
+
+
             $scope.removeTask = function(task) {
                 console.log("trying to remove task");
                 $http.delete('http://localhost:8000/public/api/task/' + task.id).success(function(res) {
                     $scope.tasks = $scope.tasks.filter(function(el) {
                         return el.id !== task.id;
                     });
-                }).error(function(err){
+                }).error(function(err) {
                     console.log("error in delete");
                 });
+            };
+            $scope.addMember = function(task){
+                if(task.members === undefined)
+                    task.members = [];
+                if(task.newMember!==undefined)
+                    task.members.push(task.newMember.id);
+                delete task.newMember;
+            };
+            
+            $scope.removeMember = function(task,member){
+              task.members = task.members.filter(function(taskMem){
+                  return taskMem !== member;
+              });  
             };
         });
