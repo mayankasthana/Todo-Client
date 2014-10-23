@@ -26,13 +26,13 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
                         return null;
                 }();
             }])
-        .service('Auth', ['$http','Util', function($http,Util) {
+        .service('Auth', ['$http', 'Util', '$rootScope', function($http, Util, $rootScope) {
                 var self = this;
                 this.isLoggedin = {val: false};
                 this.successGAuthCallback = function(event, authResult) {
                     console.log("signed in from google");
                     console.log(authResult);
-                    $http.post(Util.serverURL+'api/login',
+                    $http.post(Util.serverURL + 'api/login',
                             {
                                 "code": authResult['code'],
                                 "access_token": authResult['access_token'],
@@ -44,6 +44,7 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
                         self.me = user;
                         console.log(user);
                         console.log('Logged in? ' + self.isLoggedin.val);
+                        $rootScope.$broadcast('loggedIn');
                     }).error(function(err) {
                         console.log(err);
                     });
@@ -55,27 +56,30 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
             console.log(Util.serverURL);
             $scope.newTask = {};
             $scope.activeTaskId = 0;
+            $scope.$on('loggedIn', function(event) {
+                alert('Hi ' + Auth.me.displayName + '!');
+                $http.get(Util.serverURL + 'api/tasks?access_token=' + $scope.access_token).success(function(data) {
+                    $scope.tasks = data;
+                    getTaskMembers();
+                });
+                $http.get(Util.serverURL + 'api/users?access_token=' + $scope.access_token).success(function(data) {
+                    $scope.users = data;
+                });
+
+            });
             $scope.$on('event:google-plus-signin-success', Auth.successGAuthCallback);
             $scope.$on('event:google-plus-signin-failure', function(event, authResult) {
                 // Auth failure or signout detected
             });
-            $http.get(Util.serverURL+'api/tasks?access_token=' + $scope.access_token).success(function(data) {
-                $scope.tasks = data;
-                console.log(data);
-                getTaskMembers();
-            });
-            $http.get(Util.serverURL+'api/users?access_token=' + $scope.access_token).success(function(data) {
-                $scope.users = data;
-            });
             function getTaskMembers() {
                 $scope.tasks.forEach(function(task) {
-                    $http.get(Util.serverURL+'api/task/' + task.id + '/users?access_token=' + $scope.access_token).success(function(data) {
+                    $http.get(Util.serverURL + 'api/task/' + task.id + '/users?access_token=' + $scope.access_token).success(function(data) {
                         task.members = data;
                     });
                 });
             }
             $scope.getTaskComments = function(task) {
-                $http.get(Util.serverURL+'api/task/' + task.id + '/comments').success(function(comments) {
+                $http.get(Util.serverURL + 'api/task/' + task.id + '/comments').success(function(comments) {
                     task.comments = comments;
                 });
             }
@@ -87,7 +91,9 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
             };
             $scope.orderPredicates = [{'displayOption': 'Priority - High to Low', 'pred': 'priority'},
                 {'displayOption': 'Priority - Low to High', 'pred': '-priority'},
-                {'displayOption': 'Date - Oldest first', 'pred': $scope.sortByDate}
+                //{'displayOption': 'Date - Oldest first', 'pred': $scope.sortByDate}
+                {'displayOption': 'Date - Oldest first', 'pred': 'id'},
+                {'displayOption': 'Date - Newest first', 'pred': '-id'}
             ];
 
             $scope.addNewTask = function(input) {
@@ -99,7 +105,7 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
                 data['newTaskText'] = input;
                 data['userId'] = Auth.me.id;
                 console.log(Auth.me);
-                $http.post(Util.serverURL+'api/task?access_token=' + $scope.access_token, data).success(function(task) {
+                $http.post(Util.serverURL + 'api/task?access_token=' + $scope.access_token, data).success(function(task) {
                     $scope.tasks.push(task);
                     $scope.newTask.text = '';
                 });
@@ -108,22 +114,34 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
                 console.log(status);
             };
             $scope.incPriority = function(task) {
-                if (task.priority > 1)
+                if (task.priority == 1)
+                    return;
+                $http.put(Util.serverURL + 'api/task/' + task.id + '/priority/inc').success(function(res) {
                     task.priority -= 1;
-                $scope.tasks.forEach(function(task_elem) {
-                    if (task.priority === task_elem.priority && task.id !== task_elem.id) {
-                        task_elem.priority += 1;
-                    }
+                    $scope.tasks.forEach(function(task_elem) {
+                        if (task.priority === task_elem.priority && task.id !== task_elem.id) {
+                            task_elem.priority += 1;
+                        }
+                    });
+                }).error(function(err) {
+                    console.log(err);
                 });
             };
             $scope.decPriority = function(task) {
-                if (task.priority !== $scope.minPriority())
+                if (task.priority === $scope.minPriority())
+                    return;
+
+                $http.put(Util.serverURL + 'api/task/' + task.id + '/priority/dec').success(function(res) {
                     task.priority += 1;
-                $scope.tasks.forEach(function(task_elem) {
-                    if (task.priority === task_elem.priority && task.id !== task_elem.id) {
-                        task_elem.priority -= 1;
-                    }
+                    $scope.tasks.forEach(function(task_elem) {
+                        if (task.priority === task_elem.priority && task.id !== task_elem.id) {
+                            task_elem.priority -= 1;
+                        }
+                    });
+                }).error(function(err) {
+                    console.log(err);
                 });
+
             };
             $scope.minPriority = function() {
                 var minPriorit = 0;
@@ -136,7 +154,7 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
 
             $scope.removeTask = function(task) {
                 console.log("trying to remove task");
-                $http.delete(Util.serverURL+'api/task/' + task.id + '?access_token=' + $scope.access_token).success(function(res) {
+                $http.delete(Util.serverURL + 'api/task/' + task.id + '?access_token=' + $scope.access_token).success(function(res) {
                     $scope.tasks = $scope.tasks.filter(function(el) {
                         if (el.priority > task.priority)
                             el.priority -= 1;
@@ -168,7 +186,7 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
             $scope.addComment = function(task, commentText) {
                 if (commentText.length == 0)
                     return;
-                $http.put(Util.serverURL+'api/task/' + task.id + '/comment',
+                $http.put(Util.serverURL + 'api/task/' + task.id + '/comment',
                         {
                             comment: commentText,
                             userId: Auth.me.id
