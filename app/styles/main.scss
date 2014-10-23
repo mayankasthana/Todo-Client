@@ -96,3 +96,19 @@ body {
 .todo-list{
     box-shadow: rgb(162, 162, 162) 0px 0px 89px -10px;
 }
+
+.heading{
+    background-color:#d3d3d3;
+    padding: 2px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
