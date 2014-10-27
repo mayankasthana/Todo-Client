@@ -81,7 +81,6 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
             $scope.$on('loggedIn', function(event) {
                 $http.get(Util.serverURL + 'api/tasks').success(function(data) {
                     $scope.tasks = data;
-                    getTaskMembers();
                 });
                 $http.get(Util.serverURL + 'api/users').success(function(data) {
                     $scope.users = data;
@@ -92,13 +91,12 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
             $scope.$on('event:google-plus-signin-failure', function(event, authResult) {
                 // Auth failure or signout detected
             });
-            function getTaskMembers() {
-                $scope.tasks.forEach(function(task) {
+            $scope.getTaskMembers = function(task) {
                     $http.get(Util.serverURL + 'api/task/' + task.id + '/users').success(function(data) {
                         task.members = data;
                     });
-                });
-            }
+                }
+
             $scope.getTaskComments = function(task) {
                 $http.get(Util.serverURL + 'api/task/' + task.id + '/comments').success(function(comments) {
                     task.comments = comments;
@@ -252,6 +250,7 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
                 if (task.id !== $scope.activeTaskId) {
                     $scope.activeTaskId = task.id;
                     $scope.getTaskComments(task);
+                    $scope.getTaskMembers(task);
                 }
                 else
                     $scope.activeTaskId = 0;
