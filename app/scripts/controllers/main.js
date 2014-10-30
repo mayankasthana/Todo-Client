@@ -14,7 +14,7 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
 
                 delete $httpProvider.defaults.headers.common['X-Requested-With'];
             }])
-        .factory('authInjector', ['$cookieStore','$rootScope', function($cookieStore,$rootScope) {
+        .factory('authInjector', ['$cookieStore', '$rootScope', function($cookieStore, $rootScope) {
                 var authInjector = {
                     request: function(config) {
                         config.headers['access-token'] = $cookieStore.get('access_token');
@@ -44,7 +44,40 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
         .service('Auth', ['$http', 'Util', '$rootScope', '$cookieStore', function($http, Util, $rootScope, $cookieStore) {
                 var self = this;
                 this.isLoggedin = {val: false};
+                this.me = {};
+                console.log('access token from cookie');
+                console.log($cookieStore.get('access_token').length);
+                console.log('access token time');
+                console.log($cookieStore.get('access_token_time'));
+                this.getMe = function() {
+                    $http.get(Util.serverURL + 'api/me')
+                            .success(function(user) {
+                                self.me = JSON.parse(JSON.stringify(user));
+                                self.isLoggedin.val = true;
+                                $rootScope.$broadcast('loggedIn',user);
+                                console.log(self.me);
+                            })
+                            .error(function(err) {
+                                console.log(err)
+                            });
+                }
+                if ($cookieStore.get('access_token') !== null) {
+                    console.log('The cookie access token is not null');
+                    console.log('time now: ' + (new Date().getTime()));
+                    console.log('access token time: ' + $cookieStore.get('access_token_time'));
+                    console.log(new Date().getTime() - $cookieStore.get('access_token_time'));
+                    if (Date.now() - $cookieStore.get('access_token_time') < 3600 * 1000)
+                    {
+                        console.log("last token is still valid");
+                        //get Auth.me
+                        this.getMe();
+                    }
+                }
+
                 this.successGAuthCallback = function(event, authResult) {
+                    if (self.isLoggedin.val === true) {
+                        return;
+                    }
                     console.log("signed in from google");
                     console.log(authResult);
                     $http.post(Util.serverURL + 'api/login',
@@ -56,19 +89,19 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
                         console.log("Sign in successful from server");
                         self.access_token = authResult['access_token'];
                         $cookieStore.put('access_token', authResult['access_token']);
-                        $cookieStore.put('access_token_time',Date.now());
-                            self.isLoggedin.val = true;
-                        self.me = user;
+                        $cookieStore.put('access_token_time', Date.now());
+                        self.isLoggedin.val = true;
+                        self.me =  JSON.parse(JSON.stringify(user));
                         console.log(user);
-                        console.log('Logged in? ' + self.isLoggedin.val);
-                        $rootScope.$broadcast('loggedIn');
+                        $rootScope.$broadcast('loggedIn',user);
                     }).error(function(err) {
                         console.log(err);
                     });
                 }
-               $rootScope.$on('logged-out',function(event){
-                   self.isLoggedin.val = false;
-               });
+                $rootScope.$on('logged-out', function(event) {
+                    self.isLoggedin.val = false;
+                    //TODO delete from cookie
+                });
             }])
         .controller('TodoCtrl', function($scope, $http, $cookies, Auth, Util) {
             $scope.isLoggedin = Auth.isLoggedin;
@@ -78,7 +111,8 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
             $scope.users = [];
             $scope.tasks = [];
             $scope.activeTaskId = 0;
-            $scope.$on('loggedIn', function(event) {
+            $scope.$on('loggedIn', function(event,user) {
+                    $scope.me = user;
                 $http.get(Util.serverURL + 'api/tasks').success(function(data) {
                     $scope.tasks = data;
                 });
@@ -92,10 +126,10 @@ angular.module('todoApp', ['ui.bootstrap', 'ngDragDrop', 'directive.g+signin', '
                 // Auth failure or signout detected
             });
             $scope.getTaskMembers = function(task) {
-                    $http.get(Util.serverURL + 'api/task/' + task.id + '/users').success(function(data) {
-                        task.members = data;
-                    });
-                }
+                $http.get(Util.serverURL + 'api/task/' + task.id + '/users').success(function(data) {
+                    task.members = data;
+                });
+            }
 
             $scope.getTaskComments = function(task) {
                 $http.get(Util.serverURL + 'api/task/' + task.id + '/comments').success(function(comments) {
