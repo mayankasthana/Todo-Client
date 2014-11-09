@@ -6,7 +6,7 @@
  * # MainCtrl
  * Controller of the todoApp
  */
-angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'angular-loading-bar', 'ui.bootstrap.datetimepicker'])
+angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'angular-loading-bar', 'ui.bootstrap.datetimepicker','ui.select'])
         .config(['$httpProvider', function ($httpProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 //$httpProvider.defaults.withCredentials = true;
