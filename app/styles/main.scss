@@ -1,5 +1,8 @@
 // bower:scss
 // endbower
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,700);
+@import url("http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900,400italic");
+@import url("//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css");
 html {
     overflow-y: scroll; 
 }
@@ -12,7 +15,7 @@ html {
 
 /* Space out content a bit */
 body {
-  padding-top: 70px;
+    padding-top: 70px;
 }
 
 /* Everything but the jumbotron gets side spacing for mobile first views */
@@ -124,5 +127,397 @@ body {
     letter-spacing: 1px;
     text-transform: capitalize;
     font-weight: bolder;
-    
+
+}
+.panel-google-plus {
+    position: relative;
+    border-radius: 0px;
+    border: 1px solid rgb(216, 216, 216);
+    font-family: 'Roboto', sans-serif;
+    margin-bottom: 10px;
+}
+.panel-google-plus > .panel-google-plus-tags {
+    position: absolute;
+    top: 35px;
+    right: -3px;
+}
+.panel-google-plus > .panel-google-plus-tags > ul {
+    list-style: none;
+    padding: 0px;
+    margin: 0px;
+}
+.panel-google-plus > .panel-google-plus-tags > ul:hover {
+    box-shadow: 0px 0px 3px rgb(0, 0, 0);   
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.25);   
+}
+.panel-google-plus > .panel-google-plus-tags > ul > li {
+    display: block;
+    right: 0px;
+    width: 0px;
+    padding: 5px 0px 5px 0px;
+    background-color: rgb(245, 245, 245);
+    font-size: 12px;
+    overflow: hidden;
+}
+.panel-google-plus > .panel-google-plus-tags > ul > li::after {
+    content:"";
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    height: 100%;
+    border-right: 3px solid rgb(66, 127, 237);
+}
+.panel-google-plus > .panel-google-plus-tags > ul:hover > li,
+.panel-google-plus > .panel-google-plus-tags > ul > li:first-child {
+    padding: 5px 15px 5px 10px;
+    width: auto;
+    cursor: pointer;
+    margin-left: auto;
+}
+.panel-google-plus > .panel-google-plus-tags > ul:hover > li {
+    background-color: rgb(255, 255, 255);   
+}
+.panel-google-plus > .panel-google-plus-tags > ul > li:hover {
+    background-color: rgb(66, 127, 237);
+    color: rgb(255, 255, 255);
+}
+.panel-google-plus > .panel-heading,
+.panel-google-plus > .panel-footer {
+    background-color: rgb(255, 255, 255);
+    border-width: 0px; 
+}
+.panel-google-plus > .panel-heading {    
+    padding-bottom: 1px; 
+}
+.panel-google-plus > .panel-heading > img { 
+    margin-right: 15px;
+}
+.panel-google-plus > .panel-heading > h3 {
+    margin: 0px;
+    font-size: 14px;
+    font-weight: 700;
+}
+.panel-google-plus > .panel-heading > h5 {
+    color: rgb(153, 153, 153);
+    font-size: 12px;
+    font-weight: 400;
+}
+.panel-google-plus > .panel-body {
+    padding-top: 5px;
+    font-size: 13px;
+    padding-bottom: 2px;
+}
+.panel-google-plus > .panel-body > .panel-google-plus-image {
+    display: block;
+    text-align: center;
+    background-color: rgb(245, 245, 245);
+    border: 1px solid rgb(217, 217, 217);
+}
+.panel-google-plus > .panel-body > .panel-google-plus-image > img {
+    max-width: 100%;
+}
+
+.panel-google-plus > .panel-footer {
+    font-size: 14px;
+    font-weight: 700;
+    min-height: 54px;
+}
+.panel-google-plus > .panel-footer > .btn {
+    float: left;
+    margin-right: 8px;
+}
+.panel-google-plus > .panel-footer > .input-placeholder {
+    display: block;
+    margin-left: 98px;
+    color: rgb(153, 153, 153);
+    font-size: 12px;
+    font-weight: 400;
+    padding: 8px 6px 7px;
+    border: 1px solid rgb(217, 217, 217);
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.0470588) 0px 1px 0px 0px;
+}
+.panel-google-plus.panel-google-plus-show-comment > .panel-footer > .input-placeholder {
+    display: none;   
+}
+.panel-google-plus > .panel-google-plus-comment {
+    display: none;
+    padding: 10px 20px 15px;
+    border-top: 1px solid rgb(229, 229, 229);
+    background-color: rgb(245, 245, 245);
+}
+.panel-google-plus.panel-google-plus-show-comment > .panel-google-plus-comment {
+    display: block;
+}
+/*.panel-google-plus > .panel-google-plus-comment > img {
+    float: left;   
+}*/
+.panel-google-plus > .panel-google-plus-comment > .panel-google-plus-textarea {
+    float: right;
+    width: calc(100% - 56px);
+}
+.panel-google-plus > .panel-google-plus-comment > .panel-google-plus-textarea > textarea {
+    display: block;
+    /*margin-left: 60px;
+    width: calc(100% - 56px);*/
+    width: 100%;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(217, 217, 217);
+    box-shadow: rgba(0, 0, 0, 0.0470588) 0px 1px 0px 0px;
+    resize: vertical;
+}
+.panel-google-plus > .panel-google-plus-comment > .panel-google-plus-textarea > .btn {
+    margin-top: 10px;
+    margin-right: 8px;
+    width: 100%;
+}
+@media (min-width: 992px) {
+    .panel-google-plus > .panel-google-plus-comment > .panel-google-plus-textarea > .btn {
+        width: auto;
+    }    
+}
+
+
+.panel-google-plus .btn {
+    border-radius: 3px;   
+}
+.panel-google-plus .btn-default {
+    border: 1px solid rgb(217, 217, 217);
+    box-shadow: rgba(0, 0, 0, 0.0470588) 0px 1px 0px 0px;
+}
+.panel-google-plus .btn-default:hover, 
+.panel-google-plus .btn-default:focus, 
+.panel-google-plus .btn-default:active {
+    background-color: rgb(255, 255, 255);
+    border-color: rgb(0, 0, 0);    
+}
+
+.task-list {
+    list-style: none;
+    font-family: 'Lato', sans-serif;
+    margin: 0px;
+    padding: 0px;
+}
+.task-list > li {
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0px 0px 5px rgb(51, 51, 51);
+    box-shadow: 0px 0px 5px rgba(51, 51, 51, 0.7);
+    padding: 0px;
+    margin: 0px 0px 20px;
+}
+.task-list > li > .task-card {
+    display: inline-block;
+    width: 100%;
+    color: rgb(255, 255, 255);
+    background-color: #34495e;
+    padding: 5px;
+    text-align: center;
+    /*text-transform: uppercase;*/
+}
+
+.task-list > li > .task-card > span {
+    display: none;
+}
+.task-list > li > .task-card > .day {
+    display: block;
+    /*font-size: 56pt;*/
+    font-weight: 300;
+    /*line-height: 1;*/
+}
+.task-list > li .task-card > .month {
+    display: block;
+    font-size: 13pt;
+    font-weight: 400;
+    padding-top: 2%;
+    line-height: 1;
+}
+.task-list > li .task-card > .mark-done {
+    display: block;
+    font-size: 22pt;
+    font-weight: 900;
+    padding-top: 2%;
+    cursor: pointer;
+    color: smokescreen;
+    @extend .noselect;
+}
+
+.task-list > li .task-card > .mark-done:hover {
+    color: #2ecc71;
+    span{
+        top: -1px;
+        text-shadow: 0px 0px 2px rgba(222, 222, 222, 0.67);
+    }
+}
+.task-list > li .task-card > .task-completed{
+    @extend .mark-done;
+    @extend .mark-done:hover;
+    &:hover{
+        color:#e74c3c;
+    }
+}
+.task-list > li .task-card > .mark-done:active {
+    span{
+        top: 1px;
+    }
+}
+
+.task-list > li > img {
+    width: 100%;
+}
+.task-list > li > .info {
+    padding-top: 5px;
+    text-align: center;
+}
+.task-list > li > .info > .title {
+    font-size: 15pt;
+    font-weight: 500;
+    margin: 0px;
+}
+.task-list > li > .info > .title-completed{
+    text-decoration: line-through;
+    /*color: green;*/
+}
+.task-list > li > .info > .desc {
+    font-size: 11pt;
+    font-weight: 300;
+    margin: 0px;
+}
+.task-list > li > .info > ul,
+.task-list > li > .social > ul {
+    display: table;
+    background-color: whitesmoke;
+    list-style: none;
+    margin: 10px 0px 0px;
+    padding: 0px;
+    width: 100%;
+    text-align: center;
+}
+.task-list > li > .social > ul {
+    margin: 0px;
+    margin-left: -1px;
+}
+.task-list > li > .info > ul > li,
+.task-list > li > .social > ul > li {
+    display: table-cell;
+    cursor: pointer;
+    color: rgb(30, 30, 30);
+    font-size: 9pt;
+    font-weight: 400;
+    padding: 3px 0px;
+}
+.task-list > li > .info > ul > li > a {
+    display: block;
+    width: 100%;
+    color: rgb(30, 30, 30);
+    text-decoration: none;
+} 
+.task-list > li > .social > ul > li {    
+    padding: 0px;
+}
+.task-list > li > .social > ul > li > a {
+    padding: 3px 0px;
+} 
+.task-list > li > .info > ul > li:hover{
+    color: rgb(30, 30, 30);
+    background-color: rgb(200, 200, 200);
+}
+
+.side-icons a {
+    display: block;
+    width: 100%;
+    color: rgb(160,160,160) !important;
+}
+.task-list > li > .social > ul > li:hover,
+.side-icons:hover a {
+    color: #e74c3c !important;
+    background-color: rgb(75, 110, 168) !important;
+}
+
+.task-extra{
+    background-color: whitesmoke;
+}
+.modal-open[style] {
+    padding-right: 0px !important;
+}
+
+body.modal-open .blur-on-modal{
+    -webkit-filter: blur(4px);
+    -moz-filter: blur(4px);
+    -o-filter: blur(4px);
+    -ms-filter: blur(4px);
+    filter: blur(4px);
+}
+
+.modal-backdrop {background: #777;}
+
+@media (min-width: 768px) {
+    .task-list > li {
+        position: relative;
+        display: block;
+        width: 100%;
+        min-height: 120px;
+        padding: 0px;
+    }
+    .task-list > li > .task-card,
+    .task-list > li > .task-card,
+    .task-list > li > img  {
+        display: inline-block;
+    }
+    .task-list > li > .task-card,
+    .task-list > li > .task-card,
+    .task-list > li > img {
+        width: 120px;
+        float: left;
+    }
+    .task-list > li > .info {
+        background-color: rgb(245, 245, 245);
+        overflow: hidden;
+    }
+    .task-list > li > .task-card,
+    .task-list > li > .task-card,
+    .task-list > li > img {
+        width: 120px;
+        height: 120px;
+        padding: 0px;
+        margin: 0px;
+    }
+    .task-list > li .task-card > .month {
+        min-height: 58px;
+    }
+    .task-list > li > .info {
+        position: relative;
+        height: 120px;
+        text-align: left;
+        padding-right: 40px;
+    }	
+    .task-list > li > .info > .title, 
+    .task-list > li > .info > .desc {
+        padding: 0px 10px;
+    }
+    .task-list > li > .info > ul {
+        position: absolute;
+        left: 0px;
+        bottom: 0px;
+    }
+    .task-list > li > .social {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        display: block;
+        width: 39px;
+    }
+    .task-list > li > .social > ul {
+    }
+    .task-list > li > .social > ul > li {			
+        display: block;
+        padding: 0px;
+        border-left: 1px solid rgb(230, 230, 230);
+        border-bottom: 1px solid rgb(230, 230, 230);
+        margin-top: -1px;
+    }
+    .task-list > li > .social > ul > li > a {
+        display: block;
+        width: 39px;
+        padding: 14px 0px 9px;
+    }
 }
