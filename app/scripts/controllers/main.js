@@ -6,7 +6,7 @@
  * # MainCtrl
  * Controller of the todoApp
  */
-angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'angular-loading-bar'])
+angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'angular-loading-bar', 'ui.bootstrap.datetimepicker'])
         .config(['$httpProvider', function ($httpProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 //$httpProvider.defaults.withCredentials = true;
@@ -52,6 +52,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 this.getMe = function () {
                     $http.get(Util.serverURL + 'api/me')
                             .success(function (user) {
+                                console.log(user);
                                 user.id = parseInt(user.id);
                                 user.access_token_time = parseInt(user.access_token_time);
                                 self.me = JSON.parse(JSON.stringify(user));
@@ -92,6 +93,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                                 'access_token': authResult['access_token'],
                                 'gplus_id': authResult['gplus_id']
                             }).success(function (user) {
+                        user.id = parseInt(user.id);
                         console.log('Sign in successful from server');
                         self.access_token = authResult['access_token'];
                         $cookieStore.put('access_token', authResult['access_token']);
@@ -190,6 +192,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             };
             $scope.getNotifications = function () {
                 $http.get(Util.serverURL + 'api/notifs').success(function (notifs) {
+                    console.log(notifs);
                     $scope.notifications = notifs.map(function (notif) {
                         notif.id = parseInt(notif.id);
                         notif.dispMsg = $scope.replaceNotifMarkup(notif.message);
@@ -206,14 +209,37 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             $scope.$on('loggedIn', function (event, user) {
                 $scope.me = user;
                 $http.get(Util.serverURL + 'api/tasks').success(function (data) {
+                    console.log(data);
                     $scope.tasks = data.map(function (task) {
                         task.id = parseInt(task.id);
                         task.priority = parseInt(task.priority);
                         task.status = parseInt(task.status);
+                        task.created_at = new Date(task.created_at);
+                        task.completed_at = wrapTimeStamp(task.created_at);
+                        console.log(task.completed_at);
+                        task.deadline = wrapDateTime(task.deadlinedate, task.deadlinetime);
+                        task.created_by_user_id = parseInt(task.created_by_user_id);
                         return task;
                     });
                 });
+                function wrapDateTime(date, time) {
+                    // if date is given and time is not, assume last second of day.
+                    console.log('wrapDateTime');
+                    console.log(date);
+                    console.log(time);
+
+                    var mom = date && time && new moment(date + " " + time, "YYYY-MM-DD HH:mm:ss");
+                    console.log('mom')
+                    console.log(mom);
+                }
+                function wrapTimeStamp(timeStamp) {
+                    if (timeStamp)
+                        return new moment(timeStamp);
+                    else
+                        return null;
+                }
                 $http.get(Util.serverURL + 'api/users').success(function (data) {
+                    console.log(data);
                     $scope.users = data.map(function (user) {
                         user.id = parseInt(user.id);
                         user.access_token_time = parseInt(user.access_token_time);
@@ -229,6 +255,8 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             });
             $scope.getTaskMembers = function (task) {
                 $http.get(Util.serverURL + 'api/task/' + task.id + '/users').success(function (data) {
+                    console.log(data);
+
                     task.members = data.map(function (userId) {
                         return parseInt(userId);
                     });
@@ -237,6 +265,8 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
 
             $scope.getTaskComments = function (task) {
                 $http.get(Util.serverURL + 'api/task/' + task.id + '/comments').success(function (comments) {
+                    console.log(comments);
+
                     task.comments = comments.map(function (comment) {
                         comment.id = parseInt(comment.id);
                         comment.task_id = parseInt(comment.task_id);
@@ -251,20 +281,32 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 //console.log(date);
                 return date;
             };
-            $scope.orderPredicates = [{'displayOption': 'Priority - High to Low', 'pred': '-priority'},
+            $scope.orderPredicates = [{'displayOption': 'Priority - High to Low', 'pred': ['-priority']},
                 {'displayOption': 'Priority - Low to High', 'pred': 'priority'},
                 //{'displayOption': 'Date - Oldest first', 'pred': $scope.sortByDate}
                 {'displayOption': 'Date - Oldest first', 'pred': 'id'},
                 {'displayOption': 'Date - Newest first', 'pred': '-id'}
             ];
+
             $scope.addUpdateTask = function (newTask) {
                 newTask.priority = angular.element("#priorityRadioGroup").find('.active').find('input').prop('value');
-
+                newTask.deadlinedate = newTask.deadlinedate === null ? null : new moment(newTask.deadlinedate).format('YYYY-MM-DD');
+                newTask.deadlinetime = newTask.deadlinetime === null ? null : new moment(newTask.deadlinetime).format('HH:mm:ss');
+                newTask.description = newTask.description === undefined ? '' : newTask.description;
+                if (newTask.deadline) {
+                    newTask.deadline = new moment(newTask.deadline);
+                    newTask.deadlinedate = newTask.deadline.format('YYYY-MM-DD');
+                    newTask.deadlinetime = newTask.deadline.format('HH:mm:ss');
+                }
+                console.log("Add update task");
+                console.log(newTask);
                 if (newTask.title.length === 0) {
                     return;
                 }
                 $http.post(Util.serverURL + 'api/task', newTask)
                         .success(function (task) {
+                            console.log(task);
+
                             $scope.replaceTaskByNewCopy(task);
                             $scope.newTask = {};
                             //redirect to new task id
@@ -307,6 +349,8 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     return;
                 $http.put(Util.serverURL + 'api/task/' + task.id + '/priority/inc')
                         .success(function (priorityList) {
+                            console.log(priorityList);
+
                             //task.priority -= 1;
                             $scope.setAllPriorities($scope.tasks, priorityList);
 //                    $scope.tasks.forEach(function(task_elem) {
@@ -338,16 +382,18 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             };
 
             $scope.removeTask = function (task) {
-                console.log("trying to remove task");
                 var r = confirm("Are you sure you want to delete the task?");
                 if (r === false) {
                     return;
                 }
+                console.log("trying to remove task");
                 $http.delete(Util.serverURL + 'api/task/' + task.id).success(function (res) {
+                    console.log(res);
                     $scope.tasks = $scope.tasks.filter(function (tsk) {
                         if (tsk.id === task.id) {
                             return false;
                         }
+                        return true;
                     });
                 }).error(function (err) {
                     console.log("error in delete");
@@ -356,7 +402,10 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             $scope.editTask = function (task) {
                 $scope.mode = "Edit";
                 $scope.newTask = extend(task);
-                //remove active label
+                $scope.newTask.deadline = new moment($scope.newTask.deadlinedate + "T" + $scope.newTask.deadlinetime);
+                console.log("Edit task");
+                console.log($scope.newTask);
+//remove active label
                 //add active label
                 angular.element('#myModal').modal('show');
                 angular.element('#priorityRadioGroup label.active').removeClass('active');
@@ -386,6 +435,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             $scope.removeMember = function (task, member) {
                 $http.post(Util.serverURL + 'api/task/' + task.id + '/users/del', {ids: [member]})
                         .success(function (res) {
+                            console.log(res);
                             task.members = task.members.filter(function (taskMem) {
                                 return taskMem !== member;
                             });
@@ -406,6 +456,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                             userId: Auth.me.id
                         }
                 ).success(function (commentObj) {
+                    console.log(commentObj);
                     commentObj.id = parseInt(commentObj.id);
                     commentObj.task_id = parseInt(commentObj.task_id);
                     commentObj.user_id = parseInt(commentObj.user_id);
@@ -491,6 +542,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 var state = task.status;
                 $http.put(Util.serverURL + 'api/task/' + task.id + '/status/' + task.status)
                         .success(function (task) {
+                            console.log(task);
                             $scope.replaceTaskByNewCopy(task);
                         })
                         .error(function (err) {

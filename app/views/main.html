@@ -71,7 +71,7 @@
                                     <div ng-show="isActive(task)" class="task-extra">
                                         <div>
                                             <span>Add members:
-                                            <select ng-model="task.newMember" ng-options="user.displayName for user in candidateMembers(task)"></select>
+                                                <select ng-model="task.newMember" ng-options="user.displayName for user in candidateMembers(task)"></select>
                                             </span>
                                             <input type="button" ng-click="addMember(task)" value="Add">
                                             <ul class="list-inline">
@@ -111,24 +111,24 @@
             </div>
         </div>
     </div>
-    
-<!--    <div class="col-md-2">
-        <div class="sidebar-nav-fixed pull-right affix">
-            <div class="well">
-                <div class="nav">
-                    <div class="nav-header">People</div>
-                    <div style="display:block;" ng-repeat="user in users" >
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                {{user.displayName}}
+
+    <!--    <div class="col-md-2">
+            <div class="sidebar-nav-fixed pull-right affix">
+                <div class="well">
+                    <div class="nav">
+                        <div class="nav-header">People</div>
+                        <div style="display:block;" ng-repeat="user in users" >
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    {{user.displayName}}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                /.well 
             </div>
-            /.well 
-        </div>
-    </div>-->
+        </div>-->
 </div>
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="container">
@@ -161,13 +161,9 @@
                             </label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Deadline Date</label>
-                        <input class="form-control" type="date" ng-model="newTask.deadlinedate">
-                    </div>
-                    <div class="form-group">
-                        <label>Time</label>
-                        <input class="form-control" type="time" ng-model="newTask.deadlinetime">
+                    <div class="form-group well well-sm">
+                        <label>Deadline</label>
+                        <datetimepicker data-ng-model="newTask.deadline" ></datetimepicker>
                     </div>
                     <button type="submit" class="btn btn-default">Add Task</button>
                 </form>
