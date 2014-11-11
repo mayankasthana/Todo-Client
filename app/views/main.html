@@ -47,7 +47,79 @@
                     <div class="row">
                         <div>
                             <ul class="task-list">
-                                <li ng-repeat="task in tasks | filter:search | filter:priorityFilter | filter:statusFilter | orderBy:taskOrderPredicate.pred" ng-cloak>
+                                <li ng-repeat="task in tasks| filter:{status:0} | filter:search | filter:priorityFilter | filter:statusFilter | orderBy:taskOrderPredicate.pred" ng-cloak>
+                                    <div class="task-card" style="background-color: {{priorityColour[task.priority]}}">
+                                        <span class="day"><span class="text-{{priorityCss[task.priority]}}"><span class="fa fa-circle"></span></span> {{priorityText(task.priority)}} priority</span>
+                                        <span class="month" ng-show="!isDone(task)"><span>{{displayDeadline(task)}}</span></span>
+                                        <span class="month" ng-show="isDone(task)"><span>Done!</span></span>
+                                        <span ng-class="!isDone(task) ? 'mark-done' : 'task-completed'" ng-click="toggleStatus(task)"><span class="glyphicon glyphicon-ok"></span></span>
+                                    </div>
+                                    <div class="info" ng-style="isActive(task) ? 'height: 100 % ' : ''">
+                                        <h2 class="title" ng-class="isDone(task) ? 'title-completed' : ''">{{task.title}}</h2>
+                                        <p class="desc">{{task.description}}</p>
+                                        <ul ng-show="!isActive(task)">
+                                            <li ng-click="toggleaActiveState(task)" style="width:50%;"><span class="glyphicon glyphicon-chevron-down"></span></li>
+                                            <li style="width:50%;"><span class="text-muted">Added <span am-time-ago="task.created_at"></span></span></li>
+                                        </ul>
+                                    </div>
+                                    <div class="social">
+                                        <ul>
+                                            <li class="edit-task-icon side-icons"><a ng-click="editTask(task)"><span class="glyphicon glyphicon-pencil"></span></a></li>
+                                            <li class="delete-task-icon side-icons"><a ng-click="removeTask(task)"><span class="glyphicon glyphicon-remove"></span></a></li>
+                                            <li class="archive-task-icon side-icons"><a ng-click="archiveTask(task)"><span class="glyphicon glyphicon-compressed"></span></a></li>
+                                        </ul>
+                                    </div>
+                                    <div ng-show="isActive(task)" class="task-extra">
+                                        <div>
+                                            <span>Add members:
+                                                <select ng-model="task.newMember" ng-options="user.displayName for user in candidateMembers(task)"></select>
+                                            </span>
+                                            <input type="button" ng-click="addMember(task,[task.newMember.id])" value="Add" id="add-mem-btn">
+                                            <ul class="list-inline">
+                                                <li ng-repeat="member in task.members">
+                                                    <span class="">
+                                                        {{(users| filter:{id:member})[0].displayName}}
+                                                        <span ng-show="me.id != member" ng-click="removeMember(task, member)" class="glyphicon glyphicon-remove"></span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <span>Assign task:
+                                                <select ng-model="task.newAssignee" ng-options="user.displayName for user in candidateAssignees(task)"></select>
+                                            </span>
+                                            <input type="button" ng-click="addAssignee(task,[task.newAssignee.id])" value="Add">
+                                            <ul class="list-inline">
+                                                <li ng-repeat="assignee in task.assignees">
+                                                    <span class="">
+                                                        {{(users| filter:{id:assignee})[0].displayName}}
+                                                        <span ng-click="removeAssignee(task, assignee)" class="glyphicon glyphicon-remove"></span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <textarea ng-model="task.newComment" class="input-comment form-control" rows="4"></textarea>
+                                            <button ng-click="addComment(task, task.newComment)">Comment</button>
+                                            <p class="text-muted"><small>{{500 - task.newComment.length}} left</small></p>
+                                        </div>
+                                        <!-- Comments repeat-->
+                                        <div ng-repeat="comment in task.comments" ng-cloak>
+                                            <div class="[ panel panel-default ] panel-google-plus">
+                                                <div class="panel-heading">
+                                                    <!--<img class="[ img-circle pull-left ]" src="https://lh3.googleusercontent.com/-CxXg7_7ylq4/AAAAAAAAAAI/AAAAAAAAAQ8/LhCIKQC5Aq4/s46-c-k-no/photo.jpg" alt="Mouse0270" />-->
+                                                    <span class="glyphicon glyphicon-user"></span>
+                                                    <h3>{{userById(comment.user_id).displayName}}</h3>
+                                                    <h5><span am-time-ago="comment.created_at"></span> </h5>
+                                                </div>
+                                                <div class="panel-body">
+                                                    <p>{{comment.text}}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li ng-repeat="task in tasks | filter:{status:1} | filter:search | filter:priorityFilter | filter:statusFilter | orderBy:taskOrderPredicate.pred" ng-cloak>
                                     <div class="task-card" style="background-color: {{priorityColour[task.priority]}}">
                                         <span class="day"><span class="text-{{priorityCss[task.priority]}}"><span class="fa fa-circle"></span></span> {{priorityText(task.priority)}} priority</span>
                                         <span class="month" ng-show="!isDone(task)"><span>{{displayDeadline(task)}}</span></span>
