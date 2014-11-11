@@ -3,6 +3,13 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,700);
 @import url("http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900,400italic");
 @import url("//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.css");
+
+
+[ng-cloak]
+{
+    display: none !important;
+}
+
 html {
     overflow-y: scroll; 
 }
@@ -454,6 +461,7 @@ body.modal-open .blur-on-modal{
     max-height: 200px;
     overflow-y: scroll;
     width: 400px;
+    padding: 0px;
     .notif-wrap{
         position:relative;
         display: block;
@@ -466,6 +474,18 @@ body.modal-open .blur-on-modal{
         border-bottom-style: solid;
         &:hover{
             background-color: #ecf0f1;
+            .actions{
+                ul{
+                    li{
+                        a{
+                            .text-muted{
+                                color: #2ecc71;
+                            }
+                        }
+
+                    }
+                }
+            }
         }
         .grphic{
             font-size: xx-large;
@@ -509,12 +529,6 @@ body.modal-open .blur-on-modal{
                 }
             }
         }
-    }
-    ul{
-
-    }
-    li{
-
     }
 }
 
