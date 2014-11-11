@@ -41,12 +41,13 @@
                             <li><div class="checkbox"><label><input type="checkbox" ng-model="priorityFilterVal[1]"/><span class="text-info">Normal</span></label></div></li>
                             <li><div class="checkbox"><label><input type="checkbox" ng-model="priorityFilterVal[2]"/><span class="text-warning">High</span></label></div></li>
                             <li><div class="checkbox"><label><input type="checkbox" ng-model="priorityFilterVal[3]"/><span class="text-danger">Urgent</span></label></div></li>
+                            <li><div class="checkbox"><label><input type="checkbox" ng-model="statusFilterVal[2]"/><span class="text-primaryr">Archived</span></label></div></li>
                         </ul>
                     </div>
                     <div class="row">
                         <div>
                             <ul class="task-list">
-                                <li ng-repeat="task in tasks | filter:search | filter:priorityFilter | filter:statusFilter | orderBy:taskOrderPredicate.pred">
+                                <li ng-repeat="task in tasks | filter:search | filter:priorityFilter | filter:statusFilter | orderBy:taskOrderPredicate.pred" ng-cloak>
                                     <div class="task-card" style="background-color: {{priorityColour[task.priority]}}">
                                         <span class="day"><span class="text-{{priorityCss[task.priority]}}"><span class="fa fa-circle"></span></span> {{priorityText(task.priority)}} priority</span>
                                         <span class="month" ng-show="!isDone(task)"><span>{{displayDeadline(task)}}</span></span>
@@ -73,12 +74,26 @@
                                             <span>Add members:
                                                 <select ng-model="task.newMember" ng-options="user.displayName for user in candidateMembers(task)"></select>
                                             </span>
-                                            <input type="button" ng-click="addMember(task)" value="Add">
+                                            <input type="button" ng-click="addMember(task,[task.newMember.id])" value="Add" id="add-mem-btn">
                                             <ul class="list-inline">
                                                 <li ng-repeat="member in task.members">
                                                     <span class="">
                                                         {{(users| filter:{id:member})[0].displayName}}
-                                                        <span ng-click="removeMember(task, member)" class="glyphicon glyphicon-remove"></span>
+                                                        <span ng-show="me.id != member" ng-click="removeMember(task, member)" class="glyphicon glyphicon-remove"></span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <span>Assign task:
+                                                <select ng-model="task.newAssignee" ng-options="user.displayName for user in candidateAssignees(task)"></select>
+                                            </span>
+                                            <input type="button" ng-click="addAssignee(task,[task.newAssignee.id])" value="Add">
+                                            <ul class="list-inline">
+                                                <li ng-repeat="assignee in task.assignees">
+                                                    <span class="">
+                                                        {{(users| filter:{id:assignee})[0].displayName}}
+                                                        <span ng-click="removeAssignee(task, assignee)" class="glyphicon glyphicon-remove"></span>
                                                     </span>
                                                 </li>
                                             </ul>
@@ -89,7 +104,7 @@
                                             <p class="text-muted"><small>{{500 - task.newComment.length}} left</small></p>
                                         </div>
                                         <!-- Comments repeat-->
-                                        <div ng-repeat="comment in task.comments">
+                                        <div ng-repeat="comment in task.comments" ng-cloak>
                                             <div class="[ panel panel-default ] panel-google-plus">
                                                 <div class="panel-heading">
                                                     <!--<img class="[ img-circle pull-left ]" src="https://lh3.googleusercontent.com/-CxXg7_7ylq4/AAAAAAAAAAI/AAAAAAAAAQ8/LhCIKQC5Aq4/s46-c-k-no/photo.jpg" alt="Mouse0270" />-->

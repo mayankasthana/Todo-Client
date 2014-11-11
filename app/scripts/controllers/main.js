@@ -6,7 +6,7 @@
  * # MainCtrl
  * Controller of the todoApp
  */
-angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'angular-loading-bar', 'ui.bootstrap.datetimepicker','ui.select'])
+angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'ui.bootstrap.datetimepicker', 'ui.select'])//, 'angular-loading-bar'
         .config(['$httpProvider', function ($httpProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 //$httpProvider.defaults.withCredentials = true;
@@ -121,7 +121,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             $scope.users = [];
             $scope.tasks = [];
             $scope.notifications = [];
-            $scope.mode = "New";
+            $scope.mode = 'New';
             $scope.activeTaskId = 0;
             $scope.priorityFilterVal = {
                 '0': true,
@@ -131,7 +131,8 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             };
             $scope.statusFilterVal = {
                 '0': true,
-                '1': true
+                '1': true,
+                '2': false //archived
             };
             $scope.setStatusFilter = function (statusCode) {
                 switch (statusCode) {
@@ -148,7 +149,6 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         $scope.statusFilterVal[1] = true;
                         break;
                 }
-
             };
             $scope.replaceTaskMarkup = function (text) {
                 var taskRegex = /<task>(.*)<\/task>/;
@@ -180,7 +180,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 var res = taskRegex.exec(text);
                 if (res !== null) {
                     var commentId = res[1];
-                    return text.replace(taskRegex, "Comment #" + commentId);
+                    return text.replace(taskRegex, 'Comment #' + commentId);
                 }
                 return text;
             };
@@ -228,21 +228,26 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     console.log(date);
                     console.log(time);
 
-                    var mom = date && time && new moment(date + " " + time, "YYYY-MM-DD HH:mm:ss");
-                    console.log('mom')
+                    var mom = date && time && new moment(date + ' ' + time, 'YYYY-MM-DD HH:mm:ss');
+                    console.log('mom');
                     console.log(mom);
                 }
                 function wrapTimeStamp(timeStamp) {
-                    if (timeStamp)
+                    if (timeStamp) {
                         return new moment(timeStamp);
-                    else
+                    }
+                    else {
                         return null;
+                    }
                 }
                 $http.get(Util.serverURL + 'api/users').success(function (data) {
                     console.log(data);
                     $scope.users = data.map(function (user) {
                         user.id = parseInt(user.id);
                         user.access_token_time = parseInt(user.access_token_time);
+                        if (user.id === Auth.me.id) {
+                            user.displayName = 'Me';
+                        }
                         //ouid = parseInt('user.access_token_time');
                         return user;
                     });
@@ -258,6 +263,14 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     console.log(data);
 
                     task.members = data.map(function (userId) {
+                        return parseInt(userId);
+                    });
+                });
+            };
+            $scope.getTaskAssignees = function (task) {
+                $http.get(Util.serverURL + 'api/task/' + task.id + '/assignees').success(function (data) {
+
+                    task.assignees = data.map(function (userId) {
                         return parseInt(userId);
                     });
                 });
@@ -289,7 +302,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             ];
 
             $scope.addUpdateTask = function (newTask) {
-                newTask.priority = angular.element("#priorityRadioGroup").find('.active').find('input').prop('value');
+                newTask.priority = angular.element('#priorityRadioGroup').find('.active').find('input').prop('value');
                 newTask.deadlinedate = newTask.deadlinedate === null ? null : new moment(newTask.deadlinedate).format('YYYY-MM-DD');
                 newTask.deadlinetime = newTask.deadlinetime === null ? null : new moment(newTask.deadlinetime).format('HH:mm:ss');
                 newTask.description = newTask.description === undefined ? '' : newTask.description;
@@ -298,7 +311,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     newTask.deadlinedate = newTask.deadline.format('YYYY-MM-DD');
                     newTask.deadlinetime = newTask.deadline.format('HH:mm:ss');
                 }
-                console.log("Add update task");
+                console.log('Add update task');
                 console.log(newTask);
                 if (newTask.title.length === 0) {
                     return;
@@ -311,6 +324,8 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                             $scope.newTask = {};
                             //redirect to new task id
                             $('#myModal').modal('hide');
+                            //add me by default
+                            $scope.addMember(task, [Auth.me.id]);
                         })
                         .error(function (err) {
                             console.log(err);
@@ -318,19 +333,38 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             };
             $scope.candidateMembers = function (task) {
                 return $scope.users.filter(function (user) {
-                    if (task.members === undefined)
+                    if (task.members === undefined) {
                         return true;
-                    if (user.id === Auth.me.id)
+                    }
+                    if (user.id === Auth.me.id) {
                         return false;
+                    }
                     return task.members.indexOf(user.id) === -1;
-//                    for (var i = 0; i < task.members.length; i++) {
-//                        var mem = task.members[i];
-//                        
-//                        if (mem === user.id) {
-//                            return false;
-//                        }
-//                    }
+                });
+            };
+            $scope.candidateAssignees = function (task) {
+                if (typeof task.members === 'undefined') {
+                    return [];
+                }
+                else {
+                    return task.members
+                            .filter(function (memId) {
+                                if (typeof task.assignees !== 'undefined') {
+                                    return (task.assignees.indexOf(memId) === -1);
 
+                                } else {
+                                    return false;
+                                }
+                            })
+                            .map(function (memId) {
+                                return $scope.userById(memId);
+                            });
+                }
+                return $scope.users.filter(function (user) {
+                    if (typeof task.assignees === 'undefined') {
+                        return true;
+                    }
+                    return task.assignees.indexOf(user.id) === -1;
                 });
             };
             $scope.printStatus = function (status) {
@@ -345,8 +379,9 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 });
             };
             $scope.incPriority = function (task) {
-                if (task.priority === 1)
+                if (task.priority === 1) {
                     return;
+                }
                 $http.put(Util.serverURL + 'api/task/' + task.id + '/priority/inc')
                         .success(function (priorityList) {
                             console.log(priorityList);
@@ -363,8 +398,9 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 });
             };
             $scope.decPriority = function (task) {
-                if (task.priority === $scope.minPriority())
+                if (task.priority === $scope.minPriority()) {
                     return;
+                }
                 $http.put(Util.serverURL + 'api/task/' + task.id + '/priority/dec')
                         .success(function (priorityList) {
                             $scope.setAllPriorities($scope.tasks, priorityList);
@@ -376,17 +412,19 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 var minPriorit = 0;
                 for (var i = 0; i < $scope.tasks.length; i++) {
                     if ($scope.tasks[i].priority > minPriorit)
+                    {
                         minPriorit = $scope.tasks[i].priority;
+                    }
                 }
                 return minPriorit;
             };
 
             $scope.removeTask = function (task) {
-                var r = confirm("Are you sure you want to delete the task?");
+                var r = confirm('Are you sure you want to delete the task?');
                 if (r === false) {
                     return;
                 }
-                console.log("trying to remove task");
+                console.log('trying to remove task');
                 $http.delete(Util.serverURL + 'api/task/' + task.id).success(function (res) {
                     console.log(res);
                     $scope.tasks = $scope.tasks.filter(function (tsk) {
@@ -396,14 +434,14 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         return true;
                     });
                 }).error(function (err) {
-                    console.log("error in delete");
+                    console.log('error in delete');
                 });
             };
             $scope.editTask = function (task) {
-                $scope.mode = "Edit";
+                $scope.mode = 'Edit';
                 $scope.newTask = extend(task);
-                $scope.newTask.deadline = new moment($scope.newTask.deadlinedate + "T" + $scope.newTask.deadlinetime);
-                console.log("Edit task");
+                $scope.newTask.deadline = new moment($scope.newTask.deadlinedate + 'T' + $scope.newTask.deadlinetime);
+                console.log('Edit task');
                 console.log($scope.newTask);
 //remove active label
                 //add active label
@@ -414,20 +452,59 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             };
             $scope.newTaskActionInit = function () {
                 $scope.newTask = {};
-                $scope.mode = "New";
+                $scope.mode = 'New';
             };
-            $scope.addMember = function (task) {
+            function disableElem(selector){
+                angular.element(selector).prop('disabled', true);
+            };
+            function enableElem(selector){
+                angular.element(selector).prop('disabled',false);
+            };
+            
+            $scope.addMember = function (task, memberIds) {
+                //Remove all ids in input which are already added.
+                typeof task.members === 'undefined' ? task.members = [] : '';
+                disableElem('#add-mem-btn');
+                memberIds = memberIds.filter(function (memId) {
+                    return task.members.indexOf(memId) === -1;
+                });
                 $http.post(Util.serverURL + 'api/task/' + task.id + '/users',
-                        {ids: [task.newMember.id]})
+                        {ids: memberIds})
                         .success(function (res) {
+                            enableElem('#add-mem-btn');
                             console.log(res);
                             if (task.members === undefined) {
                                 task.members = [];
                             }
-                            if (task.newMember !== undefined) {
-                                task.members.push(task.newMember.id);
+                            if (typeof memberIds !== 'undefined') {
+                                if (typeof task.members === 'undefined') {
+                                    task.members = [];
+                                }
+                                memberIds.map(function (memId) {
+                                    task.members.push(memId);
+                                });
                             }
                             delete task.newMember;
+                        }).error(function (err) {
+                            enableElem('#add-mem-btn');
+                    console.log(err);
+                });
+            };
+            $scope.addAssignee = function (task, userIds) {
+                //remove all user ids which are already added.
+                userIds = userIds.filter(function (userId) {
+                    return task.assignees.indexOf(userId) === -1;
+                });
+                $http.post(Util.serverURL + 'api/task/' + task.id + '/assign',
+                        {ids: [task.newAssignee.id]})
+                        .success(function (res) {
+                            console.log(res);
+                            if (typeof task.assignees === 'undefined') {
+                                task.assignees = [];
+                            }
+                            task.assignees.push(parseInt(task.newAssignee.id));
+                            //$scope.addMember(task, userIds);
+                            delete task.newAssignee;
                         }).error(function (err) {
                     console.log(err);
                 });
@@ -437,6 +514,19 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         .success(function (res) {
                             console.log(res);
                             task.members = task.members.filter(function (taskMem) {
+                                return taskMem !== member;
+                            });
+                            $scope.removeAssignee(task, member);
+                        })
+                        .error(function (err) {
+                            console.log(err);
+                        });
+            };
+            $scope.removeAssignee = function (task, member) {
+                $http.post(Util.serverURL + 'api/task/' + task.id + '/assignee/del', {ids: [member]})
+                        .success(function (res) {
+                            console.log(res);
+                            task.assignees = task.assignees.filter(function (taskMem) {
                                 return taskMem !== member;
                             });
                         })
@@ -449,7 +539,9 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             };
             $scope.addComment = function (task, commentText) {
                 if (commentText === undefined || commentText.length === 0)
+                {
                     return;
+                }
                 $http.put(Util.serverURL + 'api/task/' + task.id + '/comment',
                         {
                             comment: commentText,
@@ -460,8 +552,9 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     commentObj.id = parseInt(commentObj.id);
                     commentObj.task_id = parseInt(commentObj.task_id);
                     commentObj.user_id = parseInt(commentObj.user_id);
-                    if (task.comments === undefined)
+                    if (task.comments === undefined) {
                         task.comments = [];
+                    }
                     task.comments.push(commentObj);
                     task.newComment = '';
                 }).error(function (err) {
@@ -494,6 +587,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     $scope.activeTaskId = task.id;
                     $scope.getTaskComments(task);
                     $scope.getTaskMembers(task);
+                    $scope.getTaskAssignees(task);
                 }
                 else {
                     $scope.activeTaskId = 0;
@@ -501,31 +595,36 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             };
             $scope.displayDeadline = function (task) {
                 var str = '';
+                var mom;
                 if (task.deadlinedate === null && task.deadlinetime === null) {
                     return 'No deadline';
                 }
                 else if (task.deadlinedate !== null && task.deadlinetime !== null) {
-                    var mom = new moment(task.deadlinedate + "T" + task.deadlinetime);
+                    mom = new moment(task.deadlinedate + 'T' + task.deadlinetime);
                     return 'Due ' + mom.calendar();
                 }
                 else if (task.deadlinedate !== null) {
-                    var mom = new moment(task.deadlinedate);
+                    mom = new moment(task.deadlinedate);
                     return 'Due ' + mom.calendar();
                 }
             };
             $scope.userById = function (uid) {
 
                 var users = $scope.users.filter(function (user) {
-                    return user.id == uid;
+                    return parseInt(user.id) === parseInt(uid);
                 });
-                if (users.length > 0)
+                if (users.length > 0) {
                     return users[0];
-                else
+                }
+                else {
                     return null;
+                }
             };
             $scope.taskById = function (taskId) {
+                console.log('No of tasks: ' + $scope.tasks.length);
                 var tasks = $scope.tasks.filter(function (task) {
-                    return task.id === taskId;
+                    //console.log(task.id + " === "+ taskId+" = "+ (parseInt(task.id)===parseInt(taskId)));
+                    return parseInt(task.id) === parseInt(taskId);
                 });
                 return (tasks.length > 0) ? tasks[0] : null;
             };
@@ -544,16 +643,27 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         .success(function (task) {
                             console.log(task);
                             $scope.replaceTaskByNewCopy(task);
+                            //refresh task members
+                            //refresh comments
+                            //refresh task assignees
+                            if ($scope.isActive(task)) {
+                                $scope.getTaskAssignees(task);
+                                $scope.getTaskMembers(task);
+                                $scope.getTaskComments(task);
+                            }
                         })
                         .error(function (err) {
                             console.log(err);
                         });
             };
             $scope.toggleStatus = function (task) {
-                if (parseInt(task.status) === 1)
+                if (parseInt(task.status) === 1) {
                     task.status = 0;
+                }
                 else if (parseInt(task.status) === 0)
+                {
                     task.status = 1;
+                }
                 $scope.saveStatus(task);
             };
             $scope.refreshEverything = function () {
@@ -564,13 +674,26 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             };
             $scope.noOfTasksToDo = function (tasks) {
                 return (tasks.filter(function (task) {
-                    return task.status === "0";
+                    return task.status === '0';
                 })).length;
             };
             $scope.isActive = function (task) {
                 return $scope.activeTaskId === task.id;
             }
             ;
+            $scope.markReadNotif = function (notif) {
+                console.log(notif);
+                $http.put(Util.serverURL + 'api/notif/' + notif.id + '/seen')
+                        .success(function (res) {
+                            //remove notif from current notifs
+                            $scope.notifications = $scope.notifications.filter(function (ntif) {
+                                return notif !== ntif;
+                            });
+                        })
+                        .error(function (err) {
+                            console.log(err);
+                        });
+            };
         });
 function signInCallback(authResult) {
     console.log(authResult);
@@ -578,13 +701,16 @@ function signInCallback(authResult) {
 // extends 'from' object with members from 'to'. If 'to' is null, a deep clone of 'from' is returned
 function extend(from, to)
 {
-    if (from == null || typeof from != "object")
+    if (from == null || typeof from != 'object') {
         return from;
-    if (from.constructor != Object && from.constructor != Array)
+    }
+    if (from.constructor != Object && from.constructor != Array) {
         return from;
+    }
     if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
-            from.constructor == String || from.constructor == Number || from.constructor == Boolean)
+            from.constructor == String || from.constructor == Number || from.constructor == Boolean) {
         return new from.constructor(from);
+    }
 
     to = to || new from.constructor();
 
