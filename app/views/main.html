@@ -72,7 +72,7 @@
                                     <div ng-show="isActive(task)" class="task-extra">
                                         <div>
                                             <span>Add members:
-                                                <select ng-model="task.newMember" ng-options="user.displayName for user in candidateMembers(task)"></select>
+                                                <select ng-model="task.newMember" ng-options="user.displayName for user in candidateMembers(task)" style="width: 50%;"></select>
                                             </span>
                                             <input type="button" ng-click="addMember(task,[task.newMember.id])" value="Add" id="add-mem-btn">
                                             <ul class="list-inline">
@@ -86,8 +86,8 @@
                                         </div>
                                         <div>
                                             <span>Assign task:
-                                                <select ng-model="task.newAssignee" ng-options="user.displayName for user in candidateAssignees(task)"></select>
-                                            </span>
+                                                <select ng-model="task.newAssignee" ng-options="user.displayName for user in candidateAssignees(task)" style="width: 50%;"></select>
+                                                    </span>
                                             <input type="button" ng-click="addAssignee(task,[task.newAssignee.id])" value="Add">
                                             <ul class="list-inline">
                                                 <li ng-repeat="assignee in task.assignees">
@@ -107,8 +107,7 @@
                                         <div ng-repeat="comment in task.comments" ng-cloak>
                                             <div class="[ panel panel-default ] panel-google-plus">
                                                 <div class="panel-heading">
-                                                    <!--<img class="[ img-circle pull-left ]" src="https://lh3.googleusercontent.com/-CxXg7_7ylq4/AAAAAAAAAAI/AAAAAAAAAQ8/LhCIKQC5Aq4/s46-c-k-no/photo.jpg" alt="Mouse0270" />-->
-                                                    <span class="glyphicon glyphicon-user"></span>
+                                                    <img class="[ img-circle pull-left ]" src="https://lh4.googleusercontent.com/-nns6X6AAgjg/AAAAAAAAAAI/AAAAAAAAAAA/1ZYdx_kXYBU/s32-c/photo.jpg" alt="" />
                                                     <h3>{{userById(comment.user_id).displayName}}</h3>
                                                     <h5><span am-time-ago="comment.created_at"></span> </h5>
                                                 </div>
@@ -143,29 +142,10 @@
                                     </div>
                                     <div ng-show="isActive(task)" class="task-extra">
                                         <div>
-                                            <span>Add members:
-                                                <select ng-model="task.newMember" ng-options="user.displayName for user in candidateMembers(task)"></select>
-                                            </span>
-                                            <input type="button" ng-click="addMember(task,[task.newMember.id])" value="Add" id="add-mem-btn">
                                             <ul class="list-inline">
                                                 <li ng-repeat="member in task.members">
                                                     <span class="">
                                                         {{(users| filter:{id:member})[0].displayName}}
-                                                        <span ng-show="me.id != member" ng-click="removeMember(task, member)" class="glyphicon glyphicon-remove"></span>
-                                                    </span>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <span>Assign task:
-                                                <select ng-model="task.newAssignee" ng-options="user.displayName for user in candidateAssignees(task)"></select>
-                                            </span>
-                                            <input type="button" ng-click="addAssignee(task,[task.newAssignee.id])" value="Add">
-                                            <ul class="list-inline">
-                                                <li ng-repeat="assignee in task.assignees">
-                                                    <span class="">
-                                                        {{(users| filter:{id:assignee})[0].displayName}}
-                                                        <span ng-click="removeAssignee(task, assignee)" class="glyphicon glyphicon-remove"></span>
                                                     </span>
                                                 </li>
                                             </ul>
@@ -179,8 +159,7 @@
                                         <div ng-repeat="comment in task.comments" ng-cloak>
                                             <div class="[ panel panel-default ] panel-google-plus">
                                                 <div class="panel-heading">
-                                                    <!--<img class="[ img-circle pull-left ]" src="https://lh3.googleusercontent.com/-CxXg7_7ylq4/AAAAAAAAAAI/AAAAAAAAAQ8/LhCIKQC5Aq4/s46-c-k-no/photo.jpg" alt="Mouse0270" />-->
-                                                    <span class="glyphicon glyphicon-user"></span>
+                                                    <img class="[ img-circle pull-left ]" src="https://lh4.googleusercontent.com/-nns6X6AAgjg/AAAAAAAAAAI/AAAAAAAAAAA/1ZYdx_kXYBU/s32-c/photo.jpg" alt="" />
                                                     <h3>{{userById(comment.user_id).displayName}}</h3>
                                                     <h5><span am-time-ago="comment.created_at"></span> </h5>
                                                 </div>
