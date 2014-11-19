@@ -64,12 +64,15 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                                 console.log(err);
                             });
                 };
+                self.isCookieAccessKeyValid = function(){
+                    return Date.now() - $cookieStore.get('access_token_time') < 3600 * 1000;
+                };
                 if ($cookieStore.get('access_token') !== null) {
                     console.log('The cookie access token is not null');
                     console.log('time now: ' + (new Date().getTime()));
                     console.log('access token time: ' + $cookieStore.get('access_token_time'));
                     console.log(new Date().getTime() - $cookieStore.get('access_token_time'));
-                    if (Date.now() - $cookieStore.get('access_token_time') < 3600 * 1000)
+                    if (self.isCookieAccessKeyValid())
                     {
                         console.log('last token is still valid');
                         //get Auth.me
@@ -89,14 +92,14 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     console.log(authResult);
                     $http.post(Util.serverURL + 'api/login',
                             {
-                                'code': authResult['code'],
-                                'access_token': authResult['access_token'],
-                                'gplus_id': authResult['gplus_id']
+                                'code': authResult.code,
+                                'access_token': authResult.access_token,
+                                'gplus_id': authResult.gplus_id
                             }).success(function (user) {
                         user.id = parseInt(user.id);
                         console.log('Sign in successful from server');
-                        self.access_token = authResult['access_token'];
-                        $cookieStore.put('access_token', authResult['access_token']);
+                        self.access_token = authResult.access_token;
+                        $cookieStore.put('access_token', authResult.access_token);
                         $cookieStore.put('access_token_time', Date.now());
                         self.isLoggedin.val = true;
                         self.me = JSON.parse(JSON.stringify(user));
@@ -123,6 +126,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             $scope.notifications = [];
             $scope.mode = 'New';
             $scope.activeTaskId = 0;
+            $scope.localLoginValid = Auth.isCookieAccessKeyValid;
             $scope.priorityFilterVal = {
                 '0': true,
                 '1': true,
@@ -716,7 +720,7 @@ function extend(from, to)
 
     for (var name in from)
     {
-        to[name] = typeof to[name] == "undefined" ? extend(from[name], null) : to[name];
+        to[name] = typeof to[name] === 'undefined' ? extend(from[name], null) : to[name];
     }
 
     return to;

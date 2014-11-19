@@ -1,5 +1,7 @@
 <div class="jumbotron">
     <h1>To do</h1>
     <h2>1. Sign in</h2>
-    <google-plus-signin clientid="444337330755-p48vqremkchmm6veish2k4rb6bgugf1u.apps.googleusercontent.com">
+    <div ng-if="!localLoginValid()">
+        <google-plus-signin clientid="444337330755-p48vqremkchmm6veish2k4rb6bgugf1u.apps.googleusercontent.com">
+    </div>
 </div>
