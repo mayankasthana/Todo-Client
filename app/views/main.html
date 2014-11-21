@@ -70,7 +70,7 @@
                                         </ul>
                                     </div>
                                     <div ng-show="isActive(task)" class="task-extra">
-                                        <div>
+                                        <!--<div>
                                             <span>Add members:
                                                 <select ng-model="task.newMember" ng-options="user.displayName for user in candidateMembers(task)" style="width: 50%;"></select>
                                             </span>
@@ -78,14 +78,31 @@
                                             <ul class="list-inline">
                                                 <li ng-repeat="member in task.members">
                                                     <span class="">
-                                                        {{(users| filter:{id:member})[0].displayName}}
+                                                        {{member.displayName}}
                                                         <span ng-show="me.id != member" ng-click="removeMember(task, member)" class="glyphicon glyphicon-remove"></span>
                                                     </span>
                                                 </li>
                                             </ul>
                                         </div>
+                                        -->
                                         <div>
-                                            <span>Assign task:
+                                            <span class="lead">
+                                                Members:
+                                            </span>
+                                            <ui-select multiple ng-model="task.members" theme="bootstrap" ng-disabled="disabled" on-select="memberSelected(task,$item)" on-remove="memberRemove(task,$item)">
+                                                <ui-select-match placeholder="Add members...">
+                                                    <span class="noselect">
+                                                        <img class="[ img-circle pull-left ]" src="https://lh4.googleusercontent.com/-nns6X6AAgjg/AAAAAAAAAAI/AAAAAAAAAAA/1ZYdx_kXYBU/s32-c/photo.jpg" alt="" />
+                                                        {{$item.displayName}}
+                                                    </span>
+                                                </ui-select-match>
+                                              <ui-select-choices repeat="user in candidateMembers(task) | propsFilter: {displayName: $select.search}">
+                                                <div ng-bind-html="user.displayName | highlight: $select.search"></div>
+                                              </ui-select-choices>
+                                            </ui-select>
+                                        </div>
+                                        <div>
+                                            <span class="lead">Assign to:
                                                 <select ng-model="task.newAssignee" ng-options="user.displayName for user in candidateAssignees(task)" style="width: 50%;"></select>
                                                     </span>
                                             <input type="button" ng-click="addAssignee(task,[task.newAssignee.id])" value="Add">
@@ -100,7 +117,7 @@
                                         </div>
                                         <div>
                                             <textarea ng-model="task.newComment" class="input-comment form-control" rows="4"></textarea>
-                                            <button ng-click="addComment(task, task.newComment)">Comment</button>
+                                            <button class="btn btn-default" ng-click="addComment(task, task.newComment)">Comment</button>
                                             <p class="text-muted"><small>{{500 - task.newComment.length}} left</small></p>
                                         </div>
                                         <!-- Comments repeat-->
