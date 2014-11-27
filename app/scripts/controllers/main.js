@@ -6,7 +6,7 @@
  * # MainCtrl
  * Controller of the todoApp
  */
-angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'ui.bootstrap.datetimepicker', 'ui.select', 'angularFileUpload'])//, 'angular-loading-bar'
+angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'ui.bootstrap.datetimepicker', 'ui.select'])//, 'angular-loading-bar'
         .config(['$httpProvider', function ($httpProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 //$httpProvider.defaults.withCredentials = true;
@@ -149,7 +149,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     $cookieStore.remove('access_token_time');
                 });
             }])
-        .controller('TodoCtrl', function ($scope, $http, $cookies, $upload, Auth, Util,$timeout) {
+        .controller('TodoCtrl', function ($scope, $http, $cookies, Auth, Util, $timeout) {
             $scope.isLoggedin = Auth.isLoggedin;
             $scope.me = Auth.me;
             console.log(Util.serverURL);
@@ -751,135 +751,29 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                             console.log(err);
                         });
             };
-
-            /*
-             * File upload section 
-             */
-            $scope.uploadUrl = 'http://localhost:8000/public/upload';
-            $scope.usingFlash = window.FileAPI && FileAPI.upload != null;
-            $scope.fileReaderSupported = window.FileReader != null && (window.FileAPI == null || FileAPI.html5 != false);
-            $scope.uploadRightAway = true;
-
-            $scope.dragOverClass = function ($event) {
-                console.log('dragoverclass called');
-                var items = $event.dataTransfer.items;
-                var hasFile = false;
-                if (items != null) {
-                    for (var i = 0; i < items.length; i++) {
-                        if (items[i].kind == 'file') {
-                            hasFile = true;
-                            break;
-                        }
-                    }
-                } else {
-                    hasFile = true;
-                }
-
-                return hasFile ? "dragover" : "dragover-err";
-            };
-
-            $scope.onFileSelect = function ($files) {
-                $scope.selectedFiles = [];
-                $scope.progress = [];
-                if ($scope.upload && $scope.upload.length > 0) {
-                    for (var i = 0; i < $scope.upload.length; i++) {
-                        if ($scope.upload[i] != null) {
-                            $scope.upload[i].abort();
-                        }
-                    }
-                }
-                $scope.upload = [];
-                $scope.uploadResult = [];
-                $scope.selectedFiles = $files;
-                $scope.dataUrls = [];
-                for (var i = 0; i < $files.length; i++) {
-                    var $file = $files[i];
-                    if ($scope.fileReaderSupported && $file.type.indexOf('image') > -1) {
-                        var fileReader = new FileReader();
-                        fileReader.readAsDataURL($files[i]);
-                        var loadFile = function (fileReader, index) {
-                            fileReader.onload = function (e) {
-                                $timeout(function () {
-                                    $scope.dataUrls[index] = e.target.result;
-                                });
-                            }
-                        }(fileReader, i);
-                    }
-                    $scope.progress[i] = -1;
-                    if ($scope.uploadRightAway) {
-                        $scope.startUpload(i);
-                    }
-                }
-            };
-
-            $scope.startUpload = function (index) {
-                $scope.progress[index] = 0;
-                $scope.errorMsg = null;
-                
-                    //$upload.upload()
-                    $scope.upload[index] = $upload.upload({
-                        url: $scope.uploadUrl,
-                        method: $scope.httpMethod,
-                        //headers: {'my-header': 'my-header-value'},
-                        data: {
-                            data: {d: 'some data here'},
-                            errorCode: $scope.generateErrorOnServer && $scope.serverErrorCode,
-                            errorMessage: $scope.generateErrorOnServer && $scope.serverErrorMsg
-                        },
-                        /* formDataAppender: function(fd, key, val) {
-                         if (angular.isArray(val)) {
-                         angular.forEach(val, function(v) {
-                         fd.append(key, v);
-                         });
-                         } else {
-                         fd.append(key, val);
-                         }
-                         }, */
-                        /* transformRequest: [function(val, h) {
-                         console.log(val, h('my-header')); return val + '-modified';
-                         }], */
-                        file: $scope.selectedFiles[index],
-                        fileFormDataName: 'myFile'
-                    });
-                    $scope.upload[index].then(function (response) {
-                        $timeout(function () {
-                            $scope.uploadResult.push(response.data);
-                        });
-                    }, function (response) {
-                        if (response.status > 0)
-                            $scope.errorMsg = response.status + ': ' + response.data;
-                    }, function (evt) {
-                        // Math.min is to fix IE which reports 200% sometimes
-                        $scope.progress[index] = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));                     });
-                        console.log($scope.progress[index]);
-                $scope.upload[index].xhr(function (xhr) {
-//				xhr.upload.addEventListener('abort', function() {console.log('abort complete')}, false);
-                    });
-                    
-                };
         });
-                    function signInCallback(authResult) {
+function signInCallback(authResult) {
     console.log(authResult);
 }
-                    // extends 'from' object with members from 'to'. If 'to' is null, a deep clone of 'from' is returned
-                        function extend(from, to)
+// extends 'from' object with members from 'to'. If 'to' is null, a deep clone of 'from' is returned
+function extend(from, to)
 {
     if (from == null || typeof from != 'object') {
-                        return from;
+        return from;
     }
-                            if (from.constructor != Object && from.constructor != Array) {
-                            return from;
+    if (from.constructor != Object && from.constructor != Array) {
+        return from;
     }
-                            if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
-                        from.constructor == String || from.constructor == Number || from.constructor == Boolean) {
-                            return new from.constructor(from);
+    if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
+            from.constructor == String || from.constructor == Number || from.constructor == Boolean) {
+        return new from.constructor(from);
     }
 
     to = to || new from.constructor();
 
-                        for (var name in from)
+    for (var name in from)
     {
-                                to[name] = typeof to[name] === 'undefined' ? extend(from[name], null) : to[name];
+        to[name] = typeof to[name] === 'undefined' ? extend(from[name], null) : to[name];
     }
 
     return to;
