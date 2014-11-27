@@ -531,7 +531,18 @@ body.modal-open .blur-on-modal{
         }
     }
 }
+.drop-box {
+    border: 5px dashed #DDD;
+    text-align: center;
+    padding-top: 35px; 
+}
+.drop-box.dragover {
+    border: 5px dashed blue;
+}
 
+.drop-box.dragover-err {
+    border: 5px dashed red;
+}
 @media (min-width: 768px) {
     .task-list > li {
         position: relative;

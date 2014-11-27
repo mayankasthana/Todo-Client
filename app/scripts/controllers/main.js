@@ -6,21 +6,21 @@
  * # MainCtrl
  * Controller of the todoApp
  */
-angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'ui.bootstrap.datetimepicker', 'ui.select'])//, 'angular-loading-bar'
-        .config(['$httpProvider', function($httpProvider) {
+angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'ui.bootstrap.datetimepicker', 'ui.select', 'angularFileUpload'])//, 'angular-loading-bar'
+        .config(['$httpProvider', function ($httpProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 //$httpProvider.defaults.withCredentials = true;
                 $httpProvider.interceptors.push('authInjector');
 
                 delete $httpProvider.defaults.headers.common['X-Requested-With'];
             }])
-        .factory('authInjector', ['$cookieStore', '$rootScope', function($cookieStore, $rootScope) {
+        .factory('authInjector', ['$cookieStore', '$rootScope', function ($cookieStore, $rootScope) {
                 var authInjector = {
-                    request: function(config) {
+                    request: function (config) {
                         config.headers['access-token'] = $cookieStore.get('access_token');
                         return config;
                     },
-                    responseError: function(response) {
+                    responseError: function (response) {
                         if (response.status === 401) {
                             $rootScope.$broadcast('logged-out');
                         }
@@ -28,15 +28,15 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 };
                 return authInjector;
             }])
-        .config(function($sceProvider) {
+        .config(function ($sceProvider) {
             $sceProvider.enabled(false);
         })
-        .filter('propsFilter', function() {
-            return function(items, props) {
+        .filter('propsFilter', function () {
+            return function (items, props) {
                 var out = [];
 
                 if (angular.isArray(items)) {
-                    items.forEach(function(item) {
+                    items.forEach(function (item) {
                         var itemMatches = false;
 
                         var keys = Object.keys(props);
@@ -61,8 +61,8 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 return out;
             };
         })
-        .service('Util', ['$location', function($location) {
-                this.serverURL = (function() {
+        .service('Util', ['$location', function ($location) {
+                this.serverURL = (function () {
                     console.log($location.host());
                     if ($location.host() === 'localhost') {
                         return 'http://localhost:8000/public/';
@@ -75,16 +75,16 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     }
                 }());
             }])
-        .service('Auth', ['$http', 'Util', '$rootScope', '$cookieStore', function($http, Util, $rootScope, $cookieStore) {
+        .service('Auth', ['$http', 'Util', '$rootScope', '$cookieStore', function ($http, Util, $rootScope, $cookieStore) {
                 var self = this;
                 this.isLoggedin = {val: false};
                 this.me = {};
                 console.log('access token from cookie');
                 console.log('access token time');
                 console.log($cookieStore.get('access_token_time'));
-                this.getMe = function() {
+                this.getMe = function () {
                     $http.get(Util.serverURL + 'api/me')
-                            .success(function(user) {
+                            .success(function (user) {
                                 console.log(user);
                                 user.id = parseInt(user.id);
                                 user.access_token_time = parseInt(user.access_token_time);
@@ -93,11 +93,11 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                                 $rootScope.$broadcast('loggedIn', user);
                                 console.log(self.me);
                             })
-                            .error(function(err) {
+                            .error(function (err) {
                                 console.log(err);
                             });
                 };
-                self.isCookieAccessKeyValid = function() {
+                self.isCookieAccessKeyValid = function () {
                     return Date.now() - $cookieStore.get('access_token_time') < 3600 * 1000;
                 };
                 if ($cookieStore.get('access_token') !== null) {
@@ -112,12 +112,12 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         this.getMe();
                     }
                 }
-                $rootScope.$on('logged-out', function(event) {
+                $rootScope.$on('logged-out', function (event) {
                     self.isLoggedin.val = false;
                     $cookieStore.delete('access_token');
                     $cookieStore.delete('access_token_time');
                 });
-                this.successGAuthCallback = function(event, authResult) {
+                this.successGAuthCallback = function (event, authResult) {
                     if (self.isLoggedin.val === true) {
                         return;
                     }
@@ -128,7 +128,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                                 'code': authResult.code,
                                 'access_token': authResult.access_token,
                                 'gplus_id': authResult.gplus_id
-                            }).success(function(user) {
+                            }).success(function (user) {
                         user.id = parseInt(user.id);
                         console.log('Sign in successful from server');
                         self.access_token = authResult.access_token;
@@ -138,18 +138,18 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         self.me = JSON.parse(JSON.stringify(user));
                         console.log(user);
                         $rootScope.$broadcast('loggedIn', user);
-                    }).error(function(err) {
+                    }).error(function (err) {
                         console.log(err);
                     });
                 };
-                $rootScope.$on('logged-out', function(event) {
+                $rootScope.$on('logged-out', function (event) {
                     self.isLoggedin.val = false;
                     //TODO delete from cookie
                     $cookieStore.remove('access_token');
                     $cookieStore.remove('access_token_time');
                 });
             }])
-        .controller('TodoCtrl', function($scope, $http, $cookies, Auth, Util) {
+        .controller('TodoCtrl', function ($scope, $http, $cookies, $upload, Auth, Util,$timeout) {
             $scope.isLoggedin = Auth.isLoggedin;
             $scope.me = Auth.me;
             console.log(Util.serverURL);
@@ -171,7 +171,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 '1': true,
                 '2': false //archived
             };
-            $scope.setStatusFilter = function(statusCode) {
+            $scope.setStatusFilter = function (statusCode) {
                 switch (statusCode) {
                     case 0:
                         $scope.statusFilterVal[0] = true;
@@ -187,7 +187,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         break;
                 }
             };
-            $scope.replaceTaskMarkup = function(text) {
+            $scope.replaceTaskMarkup = function (text) {
                 var taskRegex = /<task>(.*)<\/task>/;
                 var res = taskRegex.exec(text);
                 if (res !== null) {
@@ -203,7 +203,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 }
                 return text;
             };
-            $scope.replaceUserMarkup = function(text) {
+            $scope.replaceUserMarkup = function (text) {
                 var taskRegex = /<user>(.*)<\/user>/;
                 var res = taskRegex.exec(text);
                 if (res !== null) {
@@ -212,7 +212,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 }
                 return text;
             };
-            $scope.replaceCommentMarkup = function(text) {
+            $scope.replaceCommentMarkup = function (text) {
                 var taskRegex = /<comment>(.*)<\/comment>/;
                 var res = taskRegex.exec(text);
                 if (res !== null) {
@@ -221,33 +221,33 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 }
                 return text;
             };
-            $scope.replaceNotifMarkup = function(text) {
+            $scope.replaceNotifMarkup = function (text) {
                 text = $scope.replaceTaskMarkup(text);
                 text = $scope.replaceUserMarkup(text);
                 text = $scope.replaceCommentMarkup(text);
                 return text;
             };
-            $scope.getNotifications = function() {
-                $http.get(Util.serverURL + 'api/notifs').success(function(notifs) {
+            $scope.getNotifications = function () {
+                $http.get(Util.serverURL + 'api/notifs').success(function (notifs) {
                     console.log(notifs);
-                    $scope.notifications = notifs.map(function(notif) {
+                    $scope.notifications = notifs.map(function (notif) {
                         notif.id = parseInt(notif.id);
                         notif.dispMsg = $scope.replaceNotifMarkup(notif.message);
                         return notif;
                     });
                 });
             };
-            $scope.statusFilter = function(task) {
+            $scope.statusFilter = function (task) {
                 return $scope.statusFilterVal[task.status];
             };
-            $scope.priorityFilter = function(task) {
+            $scope.priorityFilter = function (task) {
                 return ($scope.priorityFilterVal[task.priority]);
             };
-            $scope.$on('loggedIn', function(event, user) {
+            $scope.$on('loggedIn', function (event, user) {
                 $scope.me = user;
-                $http.get(Util.serverURL + 'api/tasks').success(function(data) {
+                $http.get(Util.serverURL + 'api/tasks').success(function (data) {
                     console.log(data);
-                    $scope.tasks = data.map(function(task) {
+                    $scope.tasks = data.map(function (task) {
                         task.id = parseInt(task.id);
                         task.priority = parseInt(task.priority);
                         task.status = parseInt(task.status);
@@ -277,9 +277,9 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         return null;
                     }
                 }
-                $http.get(Util.serverURL + 'api/users').success(function(data) {
+                $http.get(Util.serverURL + 'api/users').success(function (data) {
                     console.log(data);
-                    $scope.users = data.map(function(user) {
+                    $scope.users = data.map(function (user) {
                         user.id = parseInt(user.id);
                         user.access_token_time = parseInt(user.access_token_time);
                         if (user.id === Auth.me.id) {
@@ -292,41 +292,41 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 $scope.getNotifications();
             });
             $scope.$on('event:google-plus-signin-success', Auth.successGAuthCallback);
-            $scope.$on('event:google-plus-signin-failure', function(event, authResult) {
+            $scope.$on('event:google-plus-signin-failure', function (event, authResult) {
                 // Auth failure or signout detected
             });
-            $scope.getTaskMembers = function(task) {
-                $http.get(Util.serverURL + 'api/task/' + task.id + '/users').success(function(data) {
+            $scope.getTaskMembers = function (task) {
+                $http.get(Util.serverURL + 'api/task/' + task.id + '/users').success(function (data) {
                     console.log(data);
 
-                    task.members = data.map(function(userId) {
+                    task.members = data.map(function (userId) {
                         return $scope.userById(userId);
                     });
                 });
             };
-            $scope.getTaskAssignees = function(task) {
-                $http.get(Util.serverURL + 'api/task/' + task.id + '/assignees').success(function(data) {
+            $scope.getTaskAssignees = function (task) {
+                $http.get(Util.serverURL + 'api/task/' + task.id + '/assignees').success(function (data) {
 
-                    task.assignees = data.map(function(userId) {
+                    task.assignees = data.map(function (userId) {
                         return parseInt(userId);
                     });
                 });
             };
-            $scope.memberSelected = function(task, $item) {
+            $scope.memberSelected = function (task, $item) {
                 if (typeof ($item) !== 'undefined') {
                     $scope.addMember(task, [$item]);
                 }
             };
-            $scope.memberRemove = function(task, $item) {
+            $scope.memberRemove = function (task, $item) {
                 if (typeof ($item) !== 'undefined') {
                     $scope.removeMember(task, $item);
                 }
             };
-            $scope.getTaskComments = function(task) {
-                $http.get(Util.serverURL + 'api/task/' + task.id + '/comments').success(function(comments) {
+            $scope.getTaskComments = function (task) {
+                $http.get(Util.serverURL + 'api/task/' + task.id + '/comments').success(function (comments) {
                     console.log(comments);
 
-                    task.comments = comments.map(function(comment) {
+                    task.comments = comments.map(function (comment) {
                         comment.id = parseInt(comment.id);
                         comment.task_id = parseInt(comment.task_id);
                         comment.user_id = parseInt(comment.user_id);
@@ -334,7 +334,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     });
                 });
             };
-            $scope.sortByDate = function(task) {
+            $scope.sortByDate = function (task) {
                 var date = new Date(task.created_at);
                 //console.log("date");
                 //console.log(date);
@@ -347,7 +347,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 {'displayOption': 'Date - Newest first', 'pred': '-id'}
             ];
 
-            $scope.addUpdateTask = function(newTask) {
+            $scope.addUpdateTask = function (newTask) {
                 newTask.priority = angular.element('#priorityRadioGroup').find('.active').find('input').prop('value');
                 newTask.deadlinedate = newTask.deadlinedate === null ? null : new moment(newTask.deadlinedate).format('YYYY-MM-DD');
                 newTask.deadlinetime = newTask.deadlinetime === null ? null : new moment(newTask.deadlinetime).format('HH:mm:ss');
@@ -363,7 +363,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     return;
                 }
                 $http.post(Util.serverURL + 'api/task', newTask)
-                        .success(function(task) {
+                        .success(function (task) {
                             console.log(task);
 
                             $scope.replaceTaskByNewCopy(task);
@@ -373,12 +373,12 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                             //add me by default
                             $scope.addMember(task, [Auth.me]);
                         })
-                        .error(function(err) {
+                        .error(function (err) {
                             console.log(err);
                         });
             };
-            $scope.candidateMembers = function(task) {
-                return $scope.users.filter(function(user) {
+            $scope.candidateMembers = function (task) {
+                return $scope.users.filter(function (user) {
                     if (task.members === undefined) {
                         return true;
                     }
@@ -388,48 +388,48 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     return task.members.indexOf(user.id) === -1;
                 });
             };
-            $scope.candidateAssignees = function(task) {
+            $scope.candidateAssignees = function (task) {
                 if (typeof task.members === 'undefined') {
                     return [];
                 }
                 else {
                     return task.members
-                            .filter(function(mem) {
+                            .filter(function (mem) {
                                 if (typeof task.assignees !== 'undefined') {
                                     return (task.assignees.indexOf(mem.id) === -1);
                                 } else {
                                     return false;
                                 }
                             })
-                            .map(function(mem) {
+                            .map(function (mem) {
                                 //return $scope.userById(memId);
                                 return mem;
                             });
                 }
-                return $scope.users.filter(function(user) {
+                return $scope.users.filter(function (user) {
                     if (typeof task.assignees === 'undefined') {
                         return true;
                     }
                     return task.assignees.indexOf(user.id) === -1;
                 });
             };
-            $scope.printStatus = function(status) {
+            $scope.printStatus = function (status) {
                 console.log(status);
             };
-            $scope.setAllPriorities = function(tasks, priorityList) {
-                tasks.forEach(function(task) {
-                    var pr = priorityList.filter(function(taskPriority) {
+            $scope.setAllPriorities = function (tasks, priorityList) {
+                tasks.forEach(function (task) {
+                    var pr = priorityList.filter(function (taskPriority) {
                         return taskPriority.task_id === task.id;
                     });
                     task.priority = pr.length === 1 ? pr[0].priority : 0;
                 });
             };
-            $scope.incPriority = function(task) {
+            $scope.incPriority = function (task) {
                 if (task.priority === 1) {
                     return;
                 }
                 $http.put(Util.serverURL + 'api/task/' + task.id + '/priority/inc')
-                        .success(function(priorityList) {
+                        .success(function (priorityList) {
                             console.log(priorityList);
 
                             //task.priority -= 1;
@@ -439,22 +439,22 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
 //                            task_elem.priority += 1;
 //                        }
 //                    });
-                        }).error(function(err) {
+                        }).error(function (err) {
                     console.log(err);
                 });
             };
-            $scope.decPriority = function(task) {
+            $scope.decPriority = function (task) {
                 if (task.priority === $scope.minPriority()) {
                     return;
                 }
                 $http.put(Util.serverURL + 'api/task/' + task.id + '/priority/dec')
-                        .success(function(priorityList) {
+                        .success(function (priorityList) {
                             $scope.setAllPriorities($scope.tasks, priorityList);
-                        }).error(function(err) {
+                        }).error(function (err) {
                     console.log(err);
                 });
             };
-            $scope.minPriority = function() {
+            $scope.minPriority = function () {
                 var minPriorit = 0;
                 for (var i = 0; i < $scope.tasks.length; i++) {
                     if ($scope.tasks[i].priority > minPriorit)
@@ -465,25 +465,25 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 return minPriorit;
             };
 
-            $scope.removeTask = function(task) {
+            $scope.removeTask = function (task) {
                 var r = confirm('Are you sure you want to delete the task?');
                 if (r === false) {
                     return;
                 }
                 console.log('trying to remove task');
-                $http.delete(Util.serverURL + 'api/task/' + task.id).success(function(res) {
+                $http.delete(Util.serverURL + 'api/task/' + task.id).success(function (res) {
                     console.log(res);
-                    $scope.tasks = $scope.tasks.filter(function(tsk) {
+                    $scope.tasks = $scope.tasks.filter(function (tsk) {
                         if (tsk.id === task.id) {
                             return false;
                         }
                         return true;
                     });
-                }).error(function(err) {
+                }).error(function (err) {
                     console.log('error in delete');
                 });
             };
-            $scope.editTask = function(task) {
+            $scope.editTask = function (task) {
                 $scope.mode = 'Edit';
                 $scope.newTask = extend(task);
                 $scope.newTask.deadline = new moment($scope.newTask.deadlinedate + 'T' + $scope.newTask.deadlinetime);
@@ -496,7 +496,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 angular.element('#priorityRadioGroup label input[value=' + task.priority + ']').parent().addClass('active');
 
             };
-            $scope.newTaskActionInit = function() {
+            $scope.newTaskActionInit = function () {
                 $scope.newTask = {};
                 $scope.mode = 'New';
             };
@@ -508,22 +508,22 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 angular.element(selector).prop('disabled', false);
             }
             ;
-            $scope.makeAlert = function(thing){
+            $scope.makeAlert = function (thing) {
                 alert(thing);
             };
-            $scope.addMember = function(task, members) {
+            $scope.addMember = function (task, members) {
                 typeof task.members === 'undefined' ? task.members = [] : '';
                 disableElem('#add-mem-btn');
                 /*                memberIds = memberIds.filter(function(memId) {
                  return task.members.indexOf(memId) === -1;
                  });
                  */
-                var memberIds = members.map(function(mem) {
+                var memberIds = members.map(function (mem) {
                     return mem.id;
                 });
                 $http.post(Util.serverURL + 'api/task/' + task.id + '/users',
                         {ids: memberIds})
-                        .success(function(res) {
+                        .success(function (res) {
                             enableElem('#add-mem-btn');
                             console.log(res);
                             if (task.members === undefined) {
@@ -534,24 +534,24 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                                     task.members = [];
                                 }
                                 /*memberIds.map(function(memId) {
-                                    task.members.push($scope.userById(memId));
-                                });
-                                */
+                                 task.members.push($scope.userById(memId));
+                                 });
+                                 */
                             }
                             delete task.newMember;
-                        }).error(function(err) {
+                        }).error(function (err) {
                     enableElem('#add-mem-btn');
                     console.log(err);
                 });
             };
-            $scope.addAssignee = function(task, userIds) {
+            $scope.addAssignee = function (task, userIds) {
                 //remove all user ids which are already added.
-                userIds = userIds.filter(function(userId) {
+                userIds = userIds.filter(function (userId) {
                     return task.assignees.indexOf(userId) === -1;
                 });
                 $http.post(Util.serverURL + 'api/task/' + task.id + '/assign',
                         {ids: [task.newAssignee.id]})
-                        .success(function(res) {
+                        .success(function (res) {
                             console.log(res);
                             if (typeof task.assignees === 'undefined') {
                                 task.assignees = [];
@@ -559,42 +559,42 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                             task.assignees.push(parseInt(task.newAssignee.id));
                             //$scope.addMember(task, userIds);
                             delete task.newAssignee;
-                        }).error(function(err) {
+                        }).error(function (err) {
                     console.log(err);
                 });
             };
-            $scope.removeMember = function(task, mem) {
+            $scope.removeMember = function (task, mem) {
                 var member = mem.id;
-                task.members = task.members.filter(function(taskMem) {
-                                return parseInt(taskMem.id) !== parseInt(member);
-                            });
+                task.members = task.members.filter(function (taskMem) {
+                    return parseInt(taskMem.id) !== parseInt(member);
+                });
                 $http.post(Util.serverURL + 'api/task/' + task.id + '/users/del', {ids: [member]})
-                        .success(function(res) {
+                        .success(function (res) {
                             console.log(res);
-                            
+
                             $scope.removeAssignee(task, mem);
                         })
-                        .error(function(err) {
+                        .error(function (err) {
                             console.log(err);
                         });
             };
-            $scope.removeAssignee = function(task, member) {
+            $scope.removeAssignee = function (task, member) {
                 //member = member.id
                 $http.post(Util.serverURL + 'api/task/' + task.id + '/assignee/del', {ids: [member]})
-                        .success(function(res) {
+                        .success(function (res) {
                             console.log(res);
-                            task.assignees = task.assignees.filter(function(taskMem) {
+                            task.assignees = task.assignees.filter(function (taskMem) {
                                 return taskMem.id !== member;
                             });
                         })
-                        .error(function(err) {
+                        .error(function (err) {
                             console.log(err);
                         });
             };
-            $scope.syncTask = function(task) {
+            $scope.syncTask = function (task) {
 
             };
-            $scope.addComment = function(task, commentText) {
+            $scope.addComment = function (task, commentText) {
                 if (commentText === undefined || commentText.length === 0)
                 {
                     return;
@@ -604,7 +604,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                             comment: commentText,
                             userId: Auth.me.id
                         }
-                ).success(function(commentObj) {
+                ).success(function (commentObj) {
                     console.log(commentObj);
                     commentObj.id = parseInt(commentObj.id);
                     commentObj.task_id = parseInt(commentObj.task_id);
@@ -614,7 +614,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     }
                     task.comments.push(commentObj);
                     task.newComment = '';
-                }).error(function(err) {
+                }).error(function (err) {
                     console.log(err);
                 });
             };
@@ -624,7 +624,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 '2': 'High',
                 '3': 'Urgent'
             };
-            $scope.priorityText = function(priority) {
+            $scope.priorityText = function (priority) {
                 return $scope.priorities[priority];
             };
             $scope.priorityCss = {
@@ -639,7 +639,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 '2': '#f0ad4e',
                 '3': '#d9534f'
             };
-            $scope.toggleaActiveState = function(task) {
+            $scope.toggleaActiveState = function (task) {
                 if (task.id !== $scope.activeTaskId) {
                     $scope.activeTaskId = task.id;
                     $scope.getTaskComments(task);
@@ -650,7 +650,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     $scope.activeTaskId = 0;
                 }
             };
-            $scope.displayDeadline = function(task) {
+            $scope.displayDeadline = function (task) {
                 var str = '';
                 var mom;
                 if (task.deadlinedate === null && task.deadlinetime === null) {
@@ -665,9 +665,9 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     return 'Due ' + mom.calendar();
                 }
             };
-            $scope.userById = function(uid) {
+            $scope.userById = function (uid) {
 
-                var users = $scope.users.filter(function(user) {
+                var users = $scope.users.filter(function (user) {
                     return parseInt(user.id) === parseInt(uid);
                 });
                 if (users.length > 0) {
@@ -677,27 +677,27 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     return null;
                 }
             };
-            $scope.taskById = function(taskId) {
+            $scope.taskById = function (taskId) {
                 console.log('No of tasks: ' + $scope.tasks.length);
-                var tasks = $scope.tasks.filter(function(task) {
+                var tasks = $scope.tasks.filter(function (task) {
                     //console.log(task.id + " === "+ taskId+" = "+ (parseInt(task.id)===parseInt(taskId)));
                     return parseInt(task.id) === parseInt(taskId);
                 });
                 return (tasks.length > 0) ? tasks[0] : null;
             };
-            $scope.replaceTaskByNewCopy = function(task) {
+            $scope.replaceTaskByNewCopy = function (task) {
                 task.id = parseInt(task.id);
                 task.priority = parseInt(task.priority);
                 task.status = parseInt(task.status);
-                $scope.tasks = $scope.tasks.filter(function(tsk) {
+                $scope.tasks = $scope.tasks.filter(function (tsk) {
                     return tsk.id !== task.id;
                 });
                 $scope.tasks.push(task);
             };
-            $scope.saveStatus = function(task) {
+            $scope.saveStatus = function (task) {
                 var state = task.status;
                 $http.put(Util.serverURL + 'api/task/' + task.id + '/status/' + task.status)
-                        .success(function(task) {
+                        .success(function (task) {
                             console.log(task);
                             $scope.replaceTaskByNewCopy(task);
                             //refresh task members
@@ -709,11 +709,11 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                                 $scope.getTaskComments(task);
                             }
                         })
-                        .error(function(err) {
+                        .error(function (err) {
                             console.log(err);
                         });
             };
-            $scope.toggleStatus = function(task) {
+            $scope.toggleStatus = function (task) {
                 if (parseInt(task.status) === 1) {
                     task.status = 0;
                 }
@@ -723,57 +723,163 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                 }
                 $scope.saveStatus(task);
             };
-            $scope.refreshEverything = function() {
+            $scope.refreshEverything = function () {
 
             };
-            $scope.isDone = function(task) {
+            $scope.isDone = function (task) {
                 return  parseInt(task.status) === 1;
             };
-            $scope.noOfTasksToDo = function(tasks) {
-                return (tasks.filter(function(task) {
+            $scope.noOfTasksToDo = function (tasks) {
+                return (tasks.filter(function (task) {
                     return task.status === '0';
                 })).length;
             };
-            $scope.isActive = function(task) {
+            $scope.isActive = function (task) {
                 return $scope.activeTaskId === task.id;
             }
             ;
-            $scope.markReadNotif = function(notif) {
+            $scope.markReadNotif = function (notif) {
                 console.log(notif);
                 $http.put(Util.serverURL + 'api/notif/' + notif.id + '/seen')
-                        .success(function(res) {
+                        .success(function (res) {
                             //remove notif from current notifs
-                            $scope.notifications = $scope.notifications.filter(function(ntif) {
+                            $scope.notifications = $scope.notifications.filter(function (ntif) {
                                 return notif !== ntif;
                             });
                         })
-                        .error(function(err) {
+                        .error(function (err) {
                             console.log(err);
                         });
             };
+
+            /*
+             * File upload section 
+             */
+            $scope.uploadUrl = 'http://localhost:8000/public/upload';
+            $scope.usingFlash = window.FileAPI && FileAPI.upload != null;
+            $scope.fileReaderSupported = window.FileReader != null && (window.FileAPI == null || FileAPI.html5 != false);
+            $scope.uploadRightAway = true;
+
+            $scope.dragOverClass = function ($event) {
+                console.log('dragoverclass called');
+                var items = $event.dataTransfer.items;
+                var hasFile = false;
+                if (items != null) {
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].kind == 'file') {
+                            hasFile = true;
+                            break;
+                        }
+                    }
+                } else {
+                    hasFile = true;
+                }
+
+                return hasFile ? "dragover" : "dragover-err";
+            };
+
+            $scope.onFileSelect = function ($files) {
+                $scope.selectedFiles = [];
+                $scope.progress = [];
+                if ($scope.upload && $scope.upload.length > 0) {
+                    for (var i = 0; i < $scope.upload.length; i++) {
+                        if ($scope.upload[i] != null) {
+                            $scope.upload[i].abort();
+                        }
+                    }
+                }
+                $scope.upload = [];
+                $scope.uploadResult = [];
+                $scope.selectedFiles = $files;
+                $scope.dataUrls = [];
+                for (var i = 0; i < $files.length; i++) {
+                    var $file = $files[i];
+                    if ($scope.fileReaderSupported && $file.type.indexOf('image') > -1) {
+                        var fileReader = new FileReader();
+                        fileReader.readAsDataURL($files[i]);
+                        var loadFile = function (fileReader, index) {
+                            fileReader.onload = function (e) {
+                                $timeout(function () {
+                                    $scope.dataUrls[index] = e.target.result;
+                                });
+                            }
+                        }(fileReader, i);
+                    }
+                    $scope.progress[i] = -1;
+                    if ($scope.uploadRightAway) {
+                        $scope.startUpload(i);
+                    }
+                }
+            };
+
+            $scope.startUpload = function (index) {
+                $scope.progress[index] = 0;
+                $scope.errorMsg = null;
+                
+                    //$upload.upload()
+                    $scope.upload[index] = $upload.upload({
+                        url: $scope.uploadUrl,
+                        method: $scope.httpMethod,
+                        //headers: {'my-header': 'my-header-value'},
+                        data: {
+                            data: {d: 'some data here'},
+                            errorCode: $scope.generateErrorOnServer && $scope.serverErrorCode,
+                            errorMessage: $scope.generateErrorOnServer && $scope.serverErrorMsg
+                        },
+                        /* formDataAppender: function(fd, key, val) {
+                         if (angular.isArray(val)) {
+                         angular.forEach(val, function(v) {
+                         fd.append(key, v);
+                         });
+                         } else {
+                         fd.append(key, val);
+                         }
+                         }, */
+                        /* transformRequest: [function(val, h) {
+                         console.log(val, h('my-header')); return val + '-modified';
+                         }], */
+                        file: $scope.selectedFiles[index],
+                        fileFormDataName: 'myFile'
+                    });
+                    $scope.upload[index].then(function (response) {
+                        $timeout(function () {
+                            $scope.uploadResult.push(response.data);
+                        });
+                    }, function (response) {
+                        if (response.status > 0)
+                            $scope.errorMsg = response.status + ': ' + response.data;
+                    }, function (evt) {
+                        // Math.min is to fix IE which reports 200% sometimes
+                        $scope.progress[index] = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));                     });
+                        console.log($scope.progress[index]);
+                $scope.upload[index].xhr(function (xhr) {
+//				xhr.upload.addEventListener('abort', function() {console.log('abort complete')}, false);
+                    });
+                    
+                };
         });
-function signInCallback(authResult) {
+                    function signInCallback(authResult) {
     console.log(authResult);
 }
-// extends 'from' object with members from 'to'. If 'to' is null, a deep clone of 'from' is returned
-function extend(from, to)
+                    // extends 'from' object with members from 'to'. If 'to' is null, a deep clone of 'from' is returned
+                        function extend(from, to)
 {
     if (from == null || typeof from != 'object') {
-        return from;
+                        return from;
     }
-    if (from.constructor != Object && from.constructor != Array) {
-        return from;
+                            if (from.constructor != Object && from.constructor != Array) {
+                            return from;
     }
-    if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
-            from.constructor == String || from.constructor == Number || from.constructor == Boolean) {
-        return new from.constructor(from);
+                            if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
+                        from.constructor == String || from.constructor == Number || from.constructor == Boolean) {
+                            return new from.constructor(from);
     }
 
     to = to || new from.constructor();
 
-    for (var name in from)
+                        for (var name in from)
     {
-        to[name] = typeof to[name] === 'undefined' ? extend(from[name], null) : to[name];
+                                to[name] = typeof to[name] === 'undefined' ? extend(from[name], null) : to[name];
     }
 
     return to;
