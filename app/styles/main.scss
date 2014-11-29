@@ -531,18 +531,44 @@ body.modal-open .blur-on-modal{
         }
     }
 }
-.drop-box {
-    border: 5px dashed #DDD;
-    text-align: center;
-    padding-top: 35px; 
-}
-.drop-box.dragover {
-    border: 5px dashed blue;
+
+.drop.drag-over {
+    background: #5CB85C;
+    color: #fff
 }
 
-.drop-box.dragover-err {
-    border: 5px dashed red;
+.att-wrap{
+    padding: 5px;
+    border: 1px dashed #777;
+    .att{ 
+        &:hover{
+         background: #dcdcdc;   
+        }
+        span{
+
+            a{
+                span{
+                    color: #15C;
+                    font-family: 'Roboto', sans-serif;
+                    .mute{
+                        color: #777;
+                        font-size: small;
+                    }
+                }
+            }
+        }
+        .remove-icon{
+            color: #777;
+            font-weight:200;
+            cursor: pointer;
+            &:hover{
+                color: #E74C3C;
+            }
+        }
+
+    }
 }
+
 @media (min-width: 768px) {
     .task-list > li {
         position: relative;

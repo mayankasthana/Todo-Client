@@ -6,7 +6,7 @@
  * # MainCtrl
  * Controller of the todoApp
  */
-angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'ui.bootstrap.datetimepicker', 'ui.select'])//, 'angular-loading-bar'
+angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin', 'ngCookies', 'ui.bootstrap.datetimepicker', 'ui.select', 'flow'])//, 'angular-loading-bar'
         .config(['$httpProvider', function ($httpProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 //$httpProvider.defaults.withCredentials = true;
@@ -74,6 +74,20 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                         return null;
                     }
                 }());
+                this.fileUploadURL = this.serverURL + 'upload/';
+            }])
+        .config(['flowFactoryProvider', function (flowFactoryProvider) {
+                flowFactoryProvider.defaults = {
+                    permanentErrors: [500, 501],
+                    maxChunkRetries: 1,
+                    chunkRetryInterval: 5000,
+                    simultaneousUploads: 1
+                };
+                flowFactoryProvider.on('catchAll', function (event) {
+                    console.log('catchAll', arguments);
+                });
+                // Can be used with different implementations of Flow.js
+                //flowFactoryProvider.factory = fustyFlowFactory;
             }])
         .service('Auth', ['$http', 'Util', '$rootScope', '$cookieStore', function ($http, Util, $rootScope, $cookieStore) {
                 var self = this;
@@ -160,6 +174,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             $scope.mode = 'New';
             $scope.activeTaskId = 0;
             $scope.localLoginValid = Auth.isCookieAccessKeyValid;
+            $scope.Util = Util;
             $scope.priorityFilterVal = {
                 '0': true,
                 '1': true,
@@ -645,6 +660,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                     $scope.getTaskComments(task);
                     $scope.getTaskMembers(task);
                     $scope.getTaskAssignees(task);
+                    $scope.getTaskAttachments(task);
                 }
                 else {
                     $scope.activeTaskId = 0;
@@ -746,6 +762,45 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
                             $scope.notifications = $scope.notifications.filter(function (ntif) {
                                 return notif !== ntif;
                             });
+                        })
+                        .error(function (err) {
+                            console.log(err);
+                        });
+            };
+            /*
+             * Attachments section
+             */
+            $scope.uploadURL = function (task, user) {
+                return Util.fileUploadURL
+                        + task.id + '/'
+                        + user.id + '/';
+            };
+
+            $scope.getTaskAttachments = function (task) {
+                $http.get(Util.serverURL + 'api/task/' + task.id + '/atts')
+                        .success(function (data) {
+                            console.log(data);
+                            task.atts = data.map(function (att) {
+                                att.link = Util.serverURL + 'api/att/' + att.id;
+                                return att;
+                            });
+                        });
+            };
+
+            $scope.setUploadSuccess = function ($file, task) {
+                console.log($file);
+                console.log(task);
+                $scope.getTaskAttachments(task);
+            };
+
+            $scope.incompleteFiles = function ($file) {
+                console.log($file.isComplete());
+                return !$file.isComplete();
+            };
+            $scope.removeAtt = function (att, task) {
+                $http.delete(Util.serverURL + 'api/att/' + att.id)
+                        .success(function (res) {
+                            $scope.getTaskAttachments(task);
                         })
                         .error(function (err) {
                             console.log(err);
