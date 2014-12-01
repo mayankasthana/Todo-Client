@@ -773,7 +773,7 @@ angular.module('todoApp', ['angularMoment', 'ui.bootstrap', 'directive.g+signin'
             $scope.uploadURL = function (task, user) {
                 return Util.fileUploadURL
                         + task.id + '/'
-                        + user.id + '/';
+                        + user.id + '';
             };
 
             $scope.getTaskAttachments = function (task) {
